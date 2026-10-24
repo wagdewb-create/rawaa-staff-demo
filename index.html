@@ -300,11 +300,7 @@ document.addEventListener('rawaa:staff-changed',show);show();window.RAWAA_REVIEW
   const A = window.RAWAA_ATTENDANCE_BRIDGE;
   const F = window.RAWAA_FINANCE_TEST;
   if (!A || !F) return;
-  const people = [
-    { id: '001', name: 'موظف تجريبي 01' },
-    { id: '002', name: 'موظف تجريبي 02' },
-    { id: '003', name: 'موظف تجريبي 03' },
-  ];
+  const people = window.RAWAA_STAFF.getAll();
   const arMonths = [
     'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
     'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
@@ -350,6 +346,14 @@ document.addEventListener('rawaa:staff-changed',show);show();window.RAWAA_REVIEW
   const calculator = document.getElementById('calculator');
   if (!section.isConnected) calculator.parentNode.insertBefore(section, calculator);
   const $ = (id) => document.getElementById(id);
+  function updateAnnualEmployees(){
+    const select=$('annual-employee'),prev=select.value;
+    select.replaceChildren();
+    const all=document.createElement('option');all.value='all';all.textContent='جميع الموظفين';select.append(all);
+    for(const p of people){const option=document.createElement('option');option.value=p.id;option.textContent=p.name+(p.status==='archived'?' (مؤرشف)':'');select.append(option);}
+    select.value=[...select.options].some(o=>o.value===prev)?prev:'all';
+  }
+  updateAnnualEmployees();
   const validYear = () => {const raw=$('annual-year').value;return /^(20\d{2})$/.test(raw) ? raw : null;};
   const rowsFor = (year, emp) => {
     if (!year) return [];
@@ -419,6 +423,7 @@ document.addEventListener('rawaa:staff-changed',show);show();window.RAWAA_REVIEW
   $('annual-export').addEventListener('click',exportCsv);
   document.addEventListener('rawaa:attendance-changed',render);
   document.addEventListener('rawaa:finance-changed',render);
+  document.addEventListener('rawaa:staff-changed',()=>{updateAnnualEmployees();render()});
   render();
   window.RAWAA_ANNUAL_TEST={render,rowsFor,perEmployee};
 })();
