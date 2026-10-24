@@ -89,8 +89,8 @@ function dateMs(date,time){if(!/^\d{4}-\d\d-\d\d$/.test(date)||!Number.isFinite(
 function rowBounds(r){const start=dateMs(r.date,r.start);const end=dateMs(r.date,r.end)+(r.nextDay?86400000:0);return [start,end];}
 function calcMinutes(r){const [a,b]=rowBounds(r);return Number.isFinite(a)&&Number.isFinite(b)?(b-a)/60000-0:NaN;}
 function getInputs(){return {employeeId:$('att-employee').value,date:$('att-date').value,start:$('att-start').value,end:$('att-end').value,nextDay:$('att-next').checked,rate:Number($('att-rate').value),note:$('att-note').value.trim()};}
-function validate(r,avoidId=null){
-if(!users.some(x=>x.id===r.employeeId))return 'اختر موظفًا من القائمة.';
+function validate(r,avoidId=null,roster=users){
+if(!roster.some(x=>x.id===r.employeeId))return 'اختر موظفًا من القائمة.';
 if(!Number.isFinite(dateMs(r.date,r.start))||!Number.isFinite(minutes(r.end)))return 'حدد تاريخًا ووقتي حضور وانصراف صحيحين.';
 const [a,b]=rowBounds(r),span=(b-a)/60000;
 if(!(span>0&&span<=1440))return 'يجب أن تكون الوردية أكبر من صفر ولا تتجاوز 24 ساعة. تحقق من خيار اليوم التالي.';
@@ -122,7 +122,7 @@ $('att-employee').addEventListener('change',()=>{$('att-rate').value=users.find(
 $('att-filter').addEventListener('change',render);$('att-month').addEventListener('change',render);$('att-cancel').addEventListener('click',resetForm);
 $('att-export').addEventListener('click',()=>{const month=$('att-month').value,emp=$('att-filter').value;const rows=enrich(entries).filter(x=>x.date.startsWith(month)&&(emp==='all'||x.employeeId===emp));download([['الموظف','التاريخ','الحضور','الانصراف','اليوم التالي','ساعات فعلية','ساعات أساسية','ساعات إضافية','أجر الساعة ₪','الأجر ₪','ملاحظة'],...rows.map(r=>[users.find(x=>x.id===r.employeeId).name,r.date,r.start,r.end,r.nextDay?'نعم':'لا',fmt(r.duration),fmt(r.normal),fmt(r.extra),r.rate,fmt(r.wage),r.note])],'RAWAA_Demo_Attendance_'+month+'.csv');});
 $('att-clear').addEventListener('click',()=>{if(!confirm('هل تريد مسح جميع سجلات الحضور التجريبية من هذا المتصفح؟ لا يمكن التراجع.'))return;entries=[];persist();resetForm();render();});
-function validateImportedBatch(records){if(!Array.isArray(records)||records.length>3000)return 'قائمة ورديات غير صالحة أو كبيرة';const old=entries;entries=[];const ids=new Set();try{for(const r of records){if(!r||typeof r!=='object'||typeof r.id!=='string'||!r.id||r.id.length>70||ids.has(r.id))return 'رقم وردية مكرر أو غير صالح';ids.add(r.id);const candidate={id:r.id,employeeId:r.employeeId,date:r.date,start:r.start,end:r.end,nextDay:r.nextDay===true,rate:r.rate,note:r.note};if(typeof r.note!=='string'||r.note.length>120||typeof r.nextDay!=='boolean')return 'صيغة وردية غير صالحة';const err=validate(candidate);if(err)return err;entries.push(candidate);}return null;}finally{entries=old;}}
+function validateImportedBatch(records,roster=users){if(!Array.isArray(records)||records.length>3000)return 'قائمة ورديات غير صالحة أو كبيرة';const old=entries;entries=[];const ids=new Set();try{for(const r of records){if(!r||typeof r!=='object'||typeof r.id!=='string'||!r.id||r.id.length>70||ids.has(r.id))return 'رقم وردية مكرر أو غير صالح';ids.add(r.id);const candidate={id:r.id,employeeId:r.employeeId,date:r.date,start:r.start,end:r.end,nextDay:r.nextDay===true,rate:r.rate,note:r.note};if(typeof r.note!=='string'||r.note.length>120||typeof r.nextDay!=='boolean')return 'صيغة وردية غير صالحة';const err=validate(candidate,null,roster);if(err)return err;entries.push(candidate);}return null;}finally{entries=old;}}
 function replaceImported(rows){const err=validateImportedBatch(rows);if(err)throw Error(err);entries=rows.map(r=>({...r}));editId=null;resetForm();render();}
 window.RAWAA_ATTENDANCE_BRIDGE={getEntries:()=>entries.map(r=>({...r})),getCalculated:()=>enrich(entries),validateImportedBatch,replaceImported,storageKey:KEY};
 load();render();
@@ -134,9 +134,9 @@ const KEY='RAWAA_DEMO_LEDGER_V13', fmt=n=>Number(n).toLocaleString('en-US',{maxi
 const users=window.RAWAA_STAFF.getAll();
 let transactions=[],editId=null,storageEnabled=true;
 function validDate(d){if(typeof d!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d))return false;const t=new Date(d+'T12:00:00');return !Number.isNaN(+t)&&t.getFullYear()===Number(d.slice(0,4))&&t.getMonth()+1===Number(d.slice(5,7))&&t.getDate()===Number(d.slice(8,10));}
-function validateTransaction(x){if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||x.id.length>80)return 'معرّف العملية غير صالح';if(!users.some(u=>u.id===x.employeeId))return 'موظف غير صالح';if(!['payment','withdrawal'].includes(x.type))return 'نوع العملية غير صالح';if(!validDate(x.date))return 'تاريخ العملية غير صالح';if(typeof x.amount!=='number'||!Number.isFinite(x.amount)||x.amount<=0||x.amount>10000000||Math.round(x.amount*100)!==x.amount*100&&Math.abs(Math.round(x.amount*100)-x.amount*100)>1e-6)return 'المبلغ يجب أن يكون موجبًا ولا يتجاوز منزلتين عشريتين';if(typeof x.note!=='string'||x.note.length>100)return 'ملاحظة غير صالحة';return null;}
-function validateList(list){if(!Array.isArray(list)||list.length>4000)return 'عدد العمليات غير صالح';const ids=new Set();for(const x of list){const err=validateTransaction(x);if(err)return err;if(ids.has(x.id))return 'توجد معرفات عمليات مكررة';ids.add(x.id);}return null;}
-function snapshot(){return {format:'rawaa-demo-backup',version:1,createdAt:new Date().toISOString(),attendance:bridge.getEntries(),transactions:transactions.map(t=>({...t}))};}
+function validateTransaction(x,roster=users){if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||x.id.length>80)return 'معرّف العملية غير صالح';if(!roster.some(u=>u.id===x.employeeId))return 'موظف غير صالح';if(!['payment','withdrawal'].includes(x.type))return 'نوع العملية غير صالح';if(!validDate(x.date))return 'تاريخ العملية غير صالح';if(typeof x.amount!=='number'||!Number.isFinite(x.amount)||x.amount<=0||x.amount>10000000||Math.round(x.amount*100)!==x.amount*100&&Math.abs(Math.round(x.amount*100)-x.amount*100)>1e-6)return 'المبلغ يجب أن يكون موجبًا ولا يتجاوز منزلتين عشريتين';if(typeof x.note!=='string'||x.note.length>100)return 'ملاحظة غير صالحة';return null;}
+function validateList(list,roster=users){if(!Array.isArray(list)||list.length>4000)return 'عدد العمليات غير صالح';const ids=new Set();for(const x of list){const err=validateTransaction(x,roster);if(err)return err;if(ids.has(x.id))return 'توجد معرفات عمليات مكررة';ids.add(x.id);}return null;}
+function snapshot(){return {format:'rawaa-demo-backup',version:2,createdAt:new Date().toISOString(),employees:window.RAWAA_STAFF.export(),attendance:bridge.getEntries(),transactions:transactions.map(t=>({...t}))};}
 function load(){try{const raw=localStorage.getItem(KEY);if(raw){const arr=JSON.parse(raw);if(!validateList(arr))transactions=arr;} }catch(e){storageEnabled=false;}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(transactions));storageEnabled=true;}catch(e){storageEnabled=false;}updateStorage();}
 function updateStorage(msg){$('fin-storage').textContent=msg|| (storageEnabled?'سجلات التدريب محفوظة في هذا المتصفح فقط، دون سحابة. نزّل نسخة JSON قبل حذف بيانات المتصفح.':'التخزين المحلي غير متاح؛ السجلات مؤقتة. استخدم تنزيل نسخة JSON للحفاظ على نسخة.');}
@@ -153,15 +153,35 @@ function showError(message){$('fin-error').textContent=message;$('fin-error').hi
 function csvSafe(value){const s=String(value??'');const safe=/^[\s]*[=+@\-\t\r]/.test(s)?"'"+s:s;return '"'+safe.replace(/"/g,'""')+'"';}
 function downloadText(contents,type,name){const blob=new Blob([contents],{type});const uri=URL.createObjectURL(blob),a=document.createElement('a');a.href=uri;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(uri),2000);}
 function downloadCsv(){const month=$('fin-month').value,filter=$('fin-filter').value;const rows=[['الموظف','الشهر','ساعات أساسية','ساعات إضافية','الأجر الإجمالي ₪','السحوبات ₪','الصافي ₪','دفعات ₪','المتبقي ₪']];for(const u of users.filter(u=>filter==='all'||u.id===filter)){const v=sumMonthly(u.id,month);rows.push([u.name,month,fmt(v.normal),fmt(v.extra),fmt(v.gross),fmt(v.withdrawals),fmt(v.net),fmt(v.paid),fmt(v.remaining)]);}downloadText('\ufeff'+rows.map(r=>r.map(csvSafe).join(',')).join('\r\n'),'text/csv;charset=utf-8','RAWAA_Demo_Month_'+month+'.csv');}
-function parseBackup(b){if(!b||typeof b!=='object'||b.format!=='rawaa-demo-backup'||b.version!==1)throw Error('هذه ليست نسخة RAWAA Demo 1.3 صالحة.');if(!Array.isArray(b.attendance)||!Array.isArray(b.transactions))throw Error('ملف النسخة يفتقد السجلات.');const attErr=bridge.validateImportedBatch(b.attendance);if(attErr)throw Error('خطأ سجل الحضور: '+attErr);const txErr=validateList(b.transactions);if(txErr)throw Error('خطأ سجل الدفعات: '+txErr);return {attendance:b.attendance,transactions:b.transactions};}
-function restoreBackup(b){const good=parseBackup(b);const ak=bridge.storageKey;let oldA,oldF;try{oldA=localStorage.getItem(ak);oldF=localStorage.getItem(KEY);}catch(e){throw Error('التخزين المحلي غير متاح في هذا العارض. افتح النسخة في Safari أو متصفح الحاسوب.');}
-try{localStorage.setItem(ak,JSON.stringify(good.attendance));localStorage.setItem(KEY,JSON.stringify(good.transactions));}catch(e){try{if(oldA===null)localStorage.removeItem(ak);else localStorage.setItem(ak,oldA);if(oldF===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,oldF);}catch(_){}throw Error('فشل حفظ النسخة؛ لم تُستبدل السجلات قيد التشغيل.');}
-bridge.replaceImported(good.attendance);transactions=good.transactions.map(x=>({...x}));editId=null;resetForm();storageEnabled=true;render();document.dispatchEvent(new Event('rawaa:finance-changed'));updateStorage('تمت استعادة النسخة التدريبية وفحص السجلات. لا توجد مزامنة سحابية.');}
+function parseBackup(b){
+ if(!b||typeof b!=='object'||b.format!=='rawaa-demo-backup'||![1,2].includes(b.version))throw Error('صيغة نسخة RAWAA غير صالحة.');
+ if(!Array.isArray(b.attendance)||!Array.isArray(b.transactions))throw Error('ملف النسخة يفتقد سجلات الدوام أو الحركات.');
+ const employees=b.version===2?b.employees:window.RAWAA_STAFF.seeded();
+ const staffErr=window.RAWAA_STAFF.validateRoster(employees);if(staffErr)throw Error('خطأ سجل الموظفين: '+staffErr);
+ const attErr=bridge.validateImportedBatch(b.attendance,employees);if(attErr)throw Error('خطأ سجل الحضور: '+attErr);
+ const txErr=validateList(b.transactions,employees);if(txErr)throw Error('خطأ سجل الدفعات: '+txErr);
+ return {employees,attendance:b.attendance,transactions:b.transactions};
+}
+function restoreBackup(b){
+ const good=parseBackup(b),ak=bridge.storageKey,sk='RAWAA_DEMO_STAFF_V19';
+ let previous={};try{for(const key of [ak,KEY,sk])previous[key]=localStorage.getItem(key);}catch(e){throw Error('التخزين المحلي غير متاح. افتح RAWAA في Safari.');}
+ try{
+  localStorage.setItem(ak,JSON.stringify(good.attendance));
+  localStorage.setItem(KEY,JSON.stringify(good.transactions));
+  localStorage.setItem(sk,JSON.stringify(good.employees));
+ }catch(e){
+  try{for(const key of [ak,KEY,sk]){if(previous[key]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[key]);}}catch(_){}throw Error('فشل حفظ النسخة؛ تم التراجع عن تغييرات الملفات المحفوظة.');
+ }
+ window.RAWAA_STAFF.replaceRoster(good.employees,{silent:true});
+ bridge.replaceImported(good.attendance);transactions=good.transactions.map(x=>({...x}));
+ editId=null;resetForm();storageEnabled=true;render();document.dispatchEvent(new Event('rawaa:staff-changed'));document.dispatchEvent(new Event('rawaa:finance-changed'));
+ updateStorage('تمت استعادة الموظفين والورديات والحركات التدريبية بعد فحصها. لا توجد مزامنة سحابية.');
+}
 $('fin-form').addEventListener('submit',e=>{e.preventDefault();const tx=fromInputs(),err=validateTransaction(tx);if(err){showError(err);return;}$('fin-error').hidden=true;transactions=editId?transactions.map(x=>x.id===editId?tx:x):[...transactions,tx];persist();$('fin-month').value=tx.date.slice(0,7);$('fin-filter').value=tx.employeeId;resetForm();render();location.hash='monthly-ledger';});
 $('fin-ledger-body').addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const tx=transactions.find(x=>x.id===b.dataset.id);if(!tx)return;if(b.dataset.action==='delete'){if(!confirm('حذف العملية التدريبية؟'))return;transactions=transactions.filter(x=>x.id!==tx.id);if(editId===tx.id)resetForm();persist();render();}else{editId=tx.id;for(const [id,key] of [['fin-employee','employeeId'],['fin-type','type'],['fin-date','date'],['fin-amount','amount'],['fin-note','note']])$(id).value=tx[key];$('fin-cancel').hidden=false;$('fin-form-title').textContent='تعديل العملية التدريبية';$('fin-error').hidden=true;location.hash='monthly-ledger';}});
 $('fin-month').addEventListener('change',render);$('fin-filter').addEventListener('change',render);$('fin-cancel').addEventListener('click',resetForm);$('fin-export').addEventListener('click',downloadCsv);
-$('fin-backup').addEventListener('click',()=>downloadText(JSON.stringify(snapshot(),null,2),'application/json;charset=utf-8','RAWAA_Demo_Backup_v1_3.json'));
-$('fin-restore').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>2*1024*1024){updateStorage('الملف أكبر من 2 ميغابايت؛ تم رفضه.');return;}try{const backup=JSON.parse(await file.text());parseBackup(backup);if(!confirm('استعادة هذه النسخة؟ ستستبدل جميع ورديات وسحوبات ودفعات المعاينة على هذا الجهاز فقط.'))return;restoreBackup(backup);}catch(err){updateStorage('رفض الاستعادة: '+err.message);}});
+$('fin-backup').addEventListener('click',()=>downloadText(JSON.stringify(snapshot(),null,2),'application/json;charset=utf-8','RAWAA_Demo_Backup_v1_9.json'));
+$('fin-restore').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>2*1024*1024){updateStorage('الملف أكبر من 2 ميغابايت؛ تم رفضه.');return;}try{const backup=JSON.parse(await file.text());parseBackup(backup);if(!confirm('استعادة هذه النسخة؟ ستستبدل بيانات الموظفين والورديات والسحوبات والدفعات التجريبية على هذا الجهاز فقط.'))return;restoreBackup(backup);}catch(err){updateStorage('رفض الاستعادة: '+err.message);}});
 document.addEventListener('rawaa:attendance-changed',render);
 $('fin-form').addEventListener('submit',()=>queueMicrotask(()=>document.dispatchEvent(new Event('rawaa:finance-changed'))));
 $('fin-ledger-body').addEventListener('click',()=>queueMicrotask(()=>document.dispatchEvent(new Event('rawaa:finance-changed'))));
