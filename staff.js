@@ -37,7 +37,7 @@ function refreshSelectors(){
 for(const id of [...FILTERS,'att-employee','fin-employee']){
 const s=$(id);if(!s)continue;const previous=s.value;s.replaceChildren();
 if(FILTERS.includes(id)){const all=document.createElement('option');all.value='all';all.textContent='جميع الموظفين';s.append(all);}
-for(const p of staff){if(!FILTERS.includes(id)&&p.status==='archived')continue;s.append(opt(p,id==='att-employee'));}
+for(const p of staff){s.append(opt(p,id==='att-employee'));}
 if([...s.options].some(x=>x.value===previous))s.value=previous;
 }
 const sel=$('selected-employee');if(sel){const old=sel.selectedIndex;sel.replaceChildren();for(let i=0;i<staff.length;i++){const o=document.createElement('option');o.value=String(i);o.textContent=staff[i].name;sel.append(o)}sel.selectedIndex=Math.min(Math.max(old,0),staff.length-1);}
@@ -72,7 +72,7 @@ if($('staff-rate').value.trim()===''){notice('سعر الساعة مطلوب',tr
 const p=clean(raw);const proposed=editId?staff.map(x=>x.id===editId?p:x):[...staff,p],err=validateRoster(proposed);
 if(err){notice(err,true);return}if(staff.some(x=>x.id!==editId&&x.name===p.name)){notice('اسم الموظف موجود مسبقًا',true);return}
 if(editId){const at=staff.findIndex(x=>x.id===editId);staff.splice(at,1,p)}else staff.push(p);
-const saved=save();formClear();stateChange();notice((editId?'تم التعديل':'حُفظ الملف التجريبي')+(saved?' على هذا الجهاز.':' مؤقتًا؛ تخزين المتصفح غير متاح.'))});
+const wasEditing=Boolean(editId);const saved=save();formClear();stateChange();notice((wasEditing?'تم تعديل بيانات الموظف':'تمت إضافة الموظف')+(saved?' على هذا الجهاز.':' مؤقتًا؛ تخزين المتصفح غير متاح.'))});
 $('staff-cancel').onclick=formClear;
 $('staff-manage-cards').addEventListener('click',e=>{
 const b=e.target.closest('button');if(!b)return;
