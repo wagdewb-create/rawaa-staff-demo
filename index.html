@@ -442,10 +442,10 @@ function synchronize(ids,source){if(updating)return;updating=true;try{for(const 
 }}}finally{updating=false;}}
 document.addEventListener('change',e=>{const target=e.target;if(!target||!target.id)return;
  if(months.includes(target.id)&&/^\d{4}-(0[1-9]|1[0-2])$/.test(target.value))synchronize(months,target);
- if(employees.includes(target.id)&&['all','001','002','003'].includes(target.value))synchronize(employees,target);
+ if(employees.includes(target.id))synchronize(employees,target);
 },true);
 /* Another browser tab may have updated localStorage. Block stale writes until reload. */
-const watched=new Set(['RAWAA_DEMO_ATTENDANCE_V12','RAWAA_DEMO_LEDGER_V13']);
+const watched=new Set(['RAWAA_DEMO_ATTENDANCE_V12','RAWAA_DEMO_LEDGER_V13','RAWAA_DEMO_STAFF_V19']);
 window.addEventListener('storage',e=>{if(e.storageArea!==localStorage||(e.key!==null&&!watched.has(e.key))||document.getElementById('rawaa-stale-shield'))return;
  const overlay=document.createElement('div');overlay.id='rawaa-stale-shield';overlay.className='rawaa-stale-shield';
  const card=document.createElement('div');card.className='rawaa-stale-card';const title=document.createElement('h2');title.textContent='تم تعديل بيانات المعاينة في تبويب آخر';
