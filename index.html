@@ -1,9 +1,32 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#103e34" name="theme-color"/><link rel="manifest" href="./manifest.webmanifest"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="default"/><meta name="apple-mobile-web-app-title" content="RAWAA تجريبي"/><meta content="معاينة رواء التدريبية للموظفين والرواتب بدون بيانات حقيقية" name="description"/><title>RAWAA — تجريبي 1.8 | الحضور والرواتب وتقرير اليوم</title><style>
+<html dir="rtl" lang="ar"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#103e34" name="theme-color"/><link rel="manifest" href="./manifest.webmanifest"/><link rel="apple-touch-icon" href="./icon.svg"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="default"/><meta name="apple-mobile-web-app-title" content="RAWAA تجريبي"/><meta content="معاينة رواء التدريبية للموظفين والرواتب بدون بيانات حقيقية" name="description"/><title>RAWAA — تجريبي 1.9 | الحضور والرواتب والتقرير السنوي</title><link rel="stylesheet" href="./staff.css"><style>
 :root{--deep:#103e34;--gold:#c7a36a;--bg:#f7f8f5;--ink:#143d33;--muted:#67796f;--border:#dce6dd;color-scheme:light}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--ink)}header{background:linear-gradient(125deg,#082b24,#175548);color:#fff;text-align:center;padding:40px 15px 28px}header .moon{display:inline-grid;place-items:center;width:58px;height:58px;border:2px solid var(--gold);border-radius:19px;font-size:30px;color:var(--gold)}h1{font-size:clamp(25px,6vw,39px);margin:12px 0 2px}header p{color:#e9d7bb;margin:4px}.tiny{font-size:11px;letter-spacing:.1em;color:var(--gold);font-weight:700}.alert{margin:16px auto;background:#fff3d9;border-right:4px solid var(--gold);padding:12px 15px;border-radius:12px;font-size:13px;max-width:1050px}nav{position:sticky;top:0;z-index:10;display:flex;gap:7px;background:white;box-shadow:0 2px 12px #143b2d17;padding:10px;overflow-x:auto;scrollbar-width:thin;white-space:nowrap}nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;flex:0 0 auto;background:var(--deep);color:#fff;padding:7px 13px;border-radius:11px;text-decoration:none;font-size:13px;font-weight:700}a,button{touch-action:manipulation}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}main{padding:0 15px 45px;max-width:1050px;margin:auto}section{scroll-margin-top:90px;margin-top:26px}h2{font-size:22px;margin:0 0 8px;border-right:4px solid var(--gold);padding-right:9px}h3{font-size:17px;margin:0 0 7px}.hint,small{color:var(--muted);font-size:13px}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.stat,.card{background:white;border:1px solid var(--border);border-radius:15px;padding:17px;box-shadow:0 4px 14px #244e3510}.stat{display:flex;flex-direction:column;gap:5px}.stat strong{font-size:25px;direction:ltr;text-align:right}.cols{display:grid;grid-template-columns:1fr;gap:12px}.card p{margin:7px 0}.employeehead{display:flex;align-items:center;gap:10px;margin-bottom:12px}.avatar{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#e9f5ed;color:var(--deep);font-size:13px;font-weight:800;flex:none}.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.actions a,.plain{color:var(--deep);display:inline-flex;align-items:center;min-height:44px;border:1px solid #c0d2c6;border-radius:9px;padding:8px 12px;text-decoration:none;font-weight:700;font-size:13px;background:#fff}.moneyrow{display:flex;justify-content:space-between;gap:12px;margin:8px 0;font-size:13px}.moneyrow strong{white-space:nowrap;direction:ltr}.net{border-top:1px dashed var(--border);display:flex;justify-content:space-between;padding-top:9px;margin-top:10px;font-weight:700}.net strong{font-size:18px;color:#0b5a42}.warning{margin:12px 0;background:#fff4df;padding:12px;border-radius:12px;font-size:13px;border:1px solid #edd7b2}.overflow{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:340px;font-size:13px}th,td{text-align:right;border-bottom:1px solid var(--border);padding:10px 5px}td:not(:first-child){direction:ltr;text-align:right}.last{font-weight:800}label{font-size:13px;font-weight:650;display:flex;flex-direction:column;gap:5px}input,select{font:inherit;width:100%;min-height:46px;border:1px solid #b9ccc0;background:white;border-radius:9px;padding:8px 10px;color:var(--ink)}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}button.primary{background:var(--deep);color:#fff;border:1px solid var(--deep);padding:11px 16px;border-radius:10px;min-height:44px;font:inherit;font-weight:700;cursor:pointer}button.outline{background:#fff;border:1px solid var(--deep);color:var(--deep);padding:11px;border-radius:10px;min-height:44px;font:inherit;font-weight:650;margin:8px 0 0 6px;cursor:pointer}.result{background:#eaf4ed;border:1px solid #bddac8;border-radius:12px;margin:14px 0;padding:12px;display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}.result strong{color:#064c3b}.checklabel{justify-content:center;flex-direction:row;align-items:center;gap:10px}.checklabel input{width:22px;min-height:22px;accent-color:var(--deep)}.mini-stats{margin:16px 0}.mini-stats .stat{padding:10px}.mini-stats strong{font-size:18px}.error{background:#ffe6e2;color:#a02820;border-radius:10px;padding:10px;margin:10px 0}.danger{color:#a32a24!important;border-color:#db9b95!important}.tiny-button{font-size:12px;min-height:36px;white-space:nowrap;background:#fff;border:1px solid #9ab4a2;border-radius:9px;padding:5px 9px;color:var(--deep);cursor:pointer}.row-buttons{display:flex;gap:5px;flex-wrap:wrap}#attendance-table{min-width:760px}#attendance-table td{white-space:nowrap}#storage-status{font-weight:600}footer{text-align:center;padding:25px 15px;font-size:12px;color:var(--muted)}@media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}.cols{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:360px){.formgrid{grid-template-columns:1fr}nav a{padding:7px 10px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 #fin-month-table{min-width:850px}#fin-ledger-table{min-width:620px}.filelabel{position:relative;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--deep);border-radius:10px;padding:9px 12px;background:#fff;min-height:44px;cursor:pointer;font-weight:700;font-size:13px}.filelabel input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}#fin-storage{font-weight:650}.subtle{color:var(--muted)}
 #daily-report .stat strong{font-variant-numeric:tabular-nums}#daily-report td:nth-child(3){min-width:140px;line-height:1.8}#daily-report td{vertical-align:top}#daily-report .daily-empty{color:#666}#daily-report .daily-present{font-weight:700;color:#15624d}@media(max-width:600px){#daily-report .card{padding:12px}}
-</style><style>#payroll-review #review-result{margin:10px 0}#payroll-review .flag{font-weight:750;color:#915012}#payroll-review .good{font-weight:750;color:#17634a}#payroll-review table{min-width:1000px}#payroll-review .overflow{max-width:100%;overflow:auto}#payroll-review tbody tr:nth-child(even){background:#f8faf8}</style></head><body><header><div class="moon">☾</div><div class="tiny">RAWAA · STAFF MANAGEMENT · DEMO 1.7</div><h1>إدارة رواء على جميع أجهزتك</h1><p>معاينة تعليمية للهاتف والحاسوب · دون تسجيل دخول</p></header><aside style="max-width:1050px;margin:12px auto;padding:12px 16px;border:1px solid #d6e6dc;border-radius:14px;background:#edf5ed;color:#174a3c;font-size:14px" role="note"><strong>RAWAA 1.7 — تجربة فقط:</strong> هذا التطبيق يعمل دون تسجيل دخول ويستخدم بيانات وهمية محفوظة في متصفحك وحده. لا توجد مزامنة مع Windows أو أجهزة أخرى، ولا ترفع بيانات موظفين حقيقية هنا. عند النشر على HTTPS يمكنك اختيار «إضافة إلى الشاشة الرئيسية» في Safari، ثم فتحه دون إنترنت بعد تحميله أول مرة.</aside><nav aria-label="أقسام رواء"><a href="#dashboard">الرئيسية</a><a href="#employees">الموظفون</a><a href="#payroll">الرواتب</a><a href="#payments">الدفعات</a><a href="#attendance">تسجيل الدوام</a><a href="#attendance-log">سجل الحضور</a><a href="#daily-report">تقرير اليوم</a><a href="#monthly-ledger">الحساب الشهري والسحوبات</a><a href="#payroll-review">مراجعة الرواتب</a><a href="#calculator">الحاسبة</a></nav><main><noscript><div class="error" role="alert"><strong>المعاينة التفاعلية لا تعمل في هذا العارض.</strong> افتح الملف عبر متصفح يدعم JavaScript أو رابط HTTPS عند توفره. يمكنك قراءة شرح الأقسام، لكن لا تعتمد على الأرقام الفارغة ولا تُدخل بيانات موظفين حقيقية.</div></noscript><div class="alert" role="note"><strong>وضع تجريبي آمن:</strong> لا يوجد حساب مدير في هذا الملف، والأسماء والأرقام كلها وهمية. تُحفظ سجلات الحضور التجريبية محليًا في المتصفح إذا سمح بذلك، ولا تُرسل أي طلبات إنترنت، ولا يرتبط الملف بقاعدة رواء الحقيقية.</div><section id="dashboard"><h2>لوحة التحكم الحية</h2><p class="hint">كل الأرقام في هذا القسم مشتقة من سجلات التجربة في هذا الجهاز، وليست أرقامًا ثابتة. لا توجد بيانات رواء الحقيقية.</p><div class="formgrid"><label>الشهر المراد مراجعته<input id="dash-month" type="month" value="2026-10"/></label><label>فلترة حسب الموظف<select id="dash-filter"><option value="all">جميع الموظفين</option><option value="001">موظف تجريبي 01</option><option value="002">موظف تجريبي 02</option><option value="003">موظف تجريبي 03</option></select></label></div><div aria-live="polite" class="stats mini-stats" id="live-dashboard-stats"></div><div class="warning" hidden="" id="live-dashboard-warning"></div><div class="actions"><a href="#attendance">تسجيل دوام جديد ←</a><a href="#monthly-ledger">إضافة سحب أو دفعة ←</a></div></section><section id="employees"><h2>الموظفون</h2><p class="hint">بطاقات الموظفين التجريبيين تعرض ساعات وأجور الشهر المحدد من سجلات الحضور الفعلية في المعاينة، لا كشوفًا ثابتة.</p><div class="cols" id="live-employee-cards"></div><div class="card" id="rate-editor"><h3>تعديل أجر الساعة الافتراضي لكل موظف</h3><p class="hint">تُستخدم الأسعار الجديدة للورديات التي تُسجّل لاحقًا فقط، ولا تتغير أجور الورديات المحفوظة.</p><div id="employee-rate-fields" class="formgrid"></div><p class="hint" id="rate-storage-message" role="status"></p></div></section><section id="payroll"><h2>الرواتب حسب سجل الدوام</h2><p class="hint">يُحتسب أجر الساعة الإضافية × 1.5 بعد 8 ساعات في يوم العمل، حتى عند وجود أكثر من وردية. لا يُخصم وقت استراحة.</p><div class="cols" id="live-payroll-cards"></div><p class="hint">الوردية الليلية تُنسب إلى تاريخ بدايتها في الحساب الشهري التجريبي.</p></section><section id="payments"><h2>الدفعات والمتبقي</h2><div class="card overflow"><table><thead><tr><th>الموظف</th><th>الصافي ₪</th><th>المدفوع ₪</th><th>المتبقي ₪</th></tr></thead><tbody id="live-payments-rows"></tbody></table></div><p class="hint">تُظهر هذه الصفحة السحوبات ودفعات الراتب المسجلة في قسم «الحساب الشهري والسحوبات» فقط.</p></section><section id="attendance"><h2>إدارة الحضور والانصراف اليومية</h2><p class="hint">أدخل موعدًا مختلفًا لكل موظف في كل يوم. يمكن إضافة أكثر من وردية في اليوم؛ يحسب البرنامج الإضافي بعد تجاوز 8 ساعات عمل كاملة في يوم بدء الدوام نفسه، ولا توجد استراحات تُخصم.</p>
+</style><style>#payroll-review #review-result{margin:10px 0}#payroll-review .flag{font-weight:750;color:#915012}#payroll-review .good{font-weight:750;color:#17634a}#payroll-review table{min-width:1000px}#payroll-review .overflow{max-width:100%;overflow:auto}#payroll-review tbody tr:nth-child(even){background:#f8faf8}</style><style id="rawaa-v18-ui">
+.rawaa-v18-note{max-width:1050px;margin:8px auto 0;padding:10px 14px;border-radius:12px;background:#e9f4ed;border:1px solid #bdd9c6;font-size:13px;color:#184a3d}
+.rawaa-stale-shield{position:fixed;inset:0;z-index:99999;background:#092e27ed;color:white;display:flex;align-items:center;justify-content:center;padding:20px;direction:rtl}
+.rawaa-stale-shield .rawaa-stale-card{background:#fff;color:#143d33;border-radius:18px;padding:25px;max-width:440px;width:100%;box-shadow:0 15px 70px #0006;text-align:center}
+.rawaa-stale-shield button{font:inherit;background:#103e34;color:#fff;border:0;border-radius:10px;padding:14px 20px;font-weight:750;min-height:48px;cursor:pointer}
+</style></head><body><header><div class="moon">☾</div><div class="tiny">RAWAA · STAFF MANAGEMENT · DEMO 1.9</div><h1>إدارة رواء على جميع أجهزتك</h1><p>معاينة تعليمية للهاتف والحاسوب · دون تسجيل دخول</p></header><aside style="max-width:1050px;margin:12px auto;padding:12px 16px;border:1px solid #d6e6dc;border-radius:14px;background:#edf5ed;color:#174a3c;font-size:14px" role="note"><strong>RAWAA 1.9 — تجربة فقط:</strong> هذا التطبيق يعمل دون تسجيل دخول ويستخدم بيانات وهمية محفوظة في متصفحك وحده. لا توجد مزامنة مع Windows أو أجهزة أخرى، ولا ترفع بيانات موظفين حقيقية هنا. عند النشر على HTTPS يمكنك اختيار «إضافة إلى الشاشة الرئيسية» في Safari، ثم فتحه دون إنترنت بعد تحميله أول مرة.</aside><nav aria-label="أقسام رواء"><a href="#dashboard">الرئيسية</a><a href="#employees">الموظفون</a><a href="#payroll">الرواتب</a><a href="#payments">الدفعات</a><a href="#attendance">تسجيل الدوام</a><a href="#attendance-log">سجل الحضور</a><a href="#bulk-attendance">دوام جماعي</a><a href="#daily-report">تقرير اليوم</a><a href="#monthly-ledger">الحساب الشهري والسحوبات</a><a href="#payroll-review">مراجعة الرواتب</a><a href="#annual-report">التقرير السنوي</a><a href="#calculator">الحاسبة</a></nav><main><noscript><div class="error" role="alert"><strong>المعاينة التفاعلية لا تعمل في هذا العارض.</strong> افتح الملف عبر متصفح يدعم JavaScript أو رابط HTTPS عند توفره. يمكنك قراءة شرح الأقسام، لكن لا تعتمد على الأرقام الفارغة ولا تُدخل بيانات موظفين حقيقية.</div></noscript><div class="alert" role="note"><strong>وضع تجريبي آمن:</strong> لا يوجد حساب مدير في هذا الملف، والأسماء والأرقام كلها وهمية. تُحفظ سجلات الحضور التجريبية محليًا في المتصفح إذا سمح بذلك، ولا تُرسل أي طلبات إنترنت، ولا يرتبط الملف بقاعدة رواء الحقيقية.</div><section id="dashboard"><h2>لوحة التحكم الحية</h2><p class="hint">كل الأرقام في هذا القسم مشتقة من سجلات التجربة في هذا الجهاز، وليست أرقامًا ثابتة. لا توجد بيانات رواء الحقيقية.</p><div class="formgrid"><label>الشهر المراد مراجعته<input id="dash-month" type="month" value="2026-10"/></label><label>فلترة حسب الموظف<select id="dash-filter"><option value="all">جميع الموظفين</option><option value="001">موظف تجريبي 01</option><option value="002">موظف تجريبي 02</option><option value="003">موظف تجريبي 03</option></select></label></div><div aria-live="polite" class="stats mini-stats" id="live-dashboard-stats"></div><div class="warning" hidden="" id="live-dashboard-warning"></div><div class="actions"><a href="#attendance">تسجيل دوام جديد ←</a><a href="#monthly-ledger">إضافة سحب أو دفعة ←</a></div></section><section id="employees"><h2>الموظفون</h2><div class="staff-manage-panel" id="staff-manager">
+<h3 id="staff-form-title">إضافة موظف تجريبي</h3>
+<p class="staff-storage-notice">هذه واجهة تدريبية عامة. لا تكتب أسماء موظفين حقيقيين أو بيانات اتصال حقيقية؛ البيانات محفوظة على جهازك فقط.</p>
+<form id="staff-form" novalidate>
+<div class="staff-manage-grid">
+<label>اسم الموظف التجريبي<input id="staff-name" required maxlength="65" placeholder="موظف تجريبي جديد" autocomplete="off"></label>
+<label>القسم / الوظيفة<input id="staff-role" maxlength="65" placeholder="المطبخ، الخدمة، المحاسبة"></label>
+<label>أجر الساعة بالشيكل<input id="staff-rate" type="number" required min="0.01" max="10000" step="0.01" inputmode="decimal" placeholder="20"></label>
+<label>رقم هاتف وهمي (اختياري)<input id="staff-phone" type="text" maxlength="35" autocomplete="off" placeholder="للتجربة فقط"></label>
+<label>تاريخ المباشرة<input id="staff-startDate" type="date"></label>
+<label>حالة الموظف<select id="staff-status"><option value="active">نشط</option><option value="archived">مؤرشف</option></select></label>
+<label>رمز الصورة<select id="staff-avatar"><option value="☾">☾ هلال رواء</option><option value="👤">👤 شخص</option><option value="👨‍🍳">👨‍🍳 طاهٍ</option><option value="👩‍🍳">👩‍🍳 طاهية</option><option value="🍽️">🍽️ خدمة</option></select></label>
+<label class="full">ملاحظات على الموظف (تجريبية)<textarea id="staff-note" maxlength="200" rows="2" placeholder="ملاحظات غير حقيقية"></textarea></label>
+</div>
+<div class="staff-manage-actions"><button class="primary" type="submit" id="staff-save">إضافة الموظف</button><button class="outline" type="button" hidden id="staff-cancel">إلغاء التعديل</button></div>
+<p id="staff-feedback" aria-live="polite" role="status" class="result"></p>
+</form></div>
+<h3>إدارة سجلات الموظفين</h3>
+<div id="staff-manage-cards"></div><h3>ملخصات الموظفين المالية</h3><p class="hint">بطاقات الموظفين التجريبيين تعرض ساعات وأجور الشهر المحدد من سجلات الحضور الفعلية في المعاينة، لا كشوفًا ثابتة.</p><div class="cols" id="live-employee-cards"></div></section><section id="payroll"><h2>الرواتب حسب سجل الدوام</h2><p class="hint">يُحتسب أجر الساعة الإضافية × 1.5 بعد 8 ساعات في يوم العمل، حتى عند وجود أكثر من وردية. لا يُخصم وقت استراحة.</p><div class="cols" id="live-payroll-cards"></div><p class="hint">الوردية الليلية تُنسب إلى تاريخ بدايتها في الحساب الشهري التجريبي.</p></section><section id="payments"><h2>الدفعات والمتبقي</h2><div class="card overflow"><table><thead><tr><th>الموظف</th><th>الصافي ₪</th><th>المدفوع ₪</th><th>المتبقي ₪</th></tr></thead><tbody id="live-payments-rows"></tbody></table></div><p class="hint">تُظهر هذه الصفحة السحوبات ودفعات الراتب المسجلة في قسم «الحساب الشهري والسحوبات» فقط.</p></section><section id="attendance"><h2>إدارة الحضور والانصراف اليومية</h2><p class="hint">أدخل موعدًا مختلفًا لكل موظف في كل يوم. يمكن إضافة أكثر من وردية في اليوم؛ يحسب البرنامج الإضافي بعد تجاوز 8 ساعات عمل كاملة في يوم بدء الدوام نفسه، ولا توجد استراحات تُخصم.</p>
 <div class="card"><h3 id="attendance-form-title">إضافة وردية تجريبية</h3>
 <form id="attendance-form" novalidate=""><div class="formgrid">
 <label>الموظف<select id="att-employee" required=""><option value="001">موظف تجريبي 01 — الخدمة</option><option value="002">موظف تجريبي 02 — المطبخ</option><option value="003">موظف تجريبي 03 — الاستقبال</option></select></label>
@@ -16,7 +39,7 @@
 </div><div aria-live="polite" class="result" id="attendance-preview" role="status">المدة الكاملة والأجر يظهران هنا، دون خصم أي استراحة.</div><div class="error" hidden="" id="attendance-error" role="alert"></div>
 <div class="actions"><button class="primary" type="submit">حفظ الوردية التجريبية</button><button class="outline" hidden="" id="att-cancel" type="button">إلغاء التعديل</button></div>
 </form><p class="hint" id="storage-status">الحفظ التجريبي على الجهاز فقط — دون سحابة أو تسجيل دخول.</p></div></section>
-<section id="daily-report"><h2>تقرير دوام الموظفين اليومي</h2><p class="hint">اختر أي تاريخ لمراجعة من سُجِّل له حضور وانصراف، ومن لا يوجد له سجل. عدم وجود تسجيل لا يعني أن الموظف غائب. تُنسب الوردية الليلية إلى يوم بدء الدوام، وتُحتسب كامل مدتها دون استراحة.</p>
+<section id="bulk-attendance" aria-label="تسجيل الدوام الجماعي"><h2>دوام جماعي</h2><p class="hint">للتجربة فقط. يتطلب تشغيل JavaScript.</p></section><section id="daily-report"><h2>تقرير دوام الموظفين اليومي</h2><p class="hint">اختر أي تاريخ لمراجعة من سُجِّل له حضور وانصراف، ومن لا يوجد له سجل. عدم وجود تسجيل لا يعني أن الموظف غائب. تُنسب الوردية الليلية إلى يوم بدء الدوام، وتُحتسب كامل مدتها دون استراحة.</p>
 <div class="card"><div class="formgrid"><label>تاريخ التقرير<input id="daily-date" required="" type="date" value="2026-10-24"/></label><label>عرض الموظف<select id="daily-filter"><option value="all">جميع الموظفين</option><option value="001">موظف تجريبي 01</option><option value="002">موظف تجريبي 02</option><option value="003">موظف تجريبي 03</option></select></label></div><div class="actions"><button class="outline" id="daily-export" type="button">تصدير تقرير اليوم CSV</button><button class="outline" id="daily-today" type="button">تاريخ اليوم</button></div></div>
 <div aria-live="polite" class="stats mini-stats" id="daily-stats"></div><div class="card overflow"><table><thead><tr><th>الموظف</th><th>الحالة</th><th>مواعيد الدوام</th><th>الساعات</th><th>الأساسي</th><th>الإضافي</th><th>الأجر ₪</th></tr></thead><tbody id="daily-rows"></tbody></table></div>
 <p class="hint">الرواتب والدفعات المعروضة تدريبية. لا تعدّل هذه الشاشة قاعدة بيانات Windows أو أي سجلات سحابية.</p></section><section id="attendance-log"><h2>سجل الحضور</h2><p class="hint">كل موظف يمكن أن يبدأ وينهي دوامه في وقت مختلف كل يوم. السجلات المعروضة هنا تدريبية فقط.</p>
@@ -51,22 +74,17 @@
 <p class="hint" id="fin-storage" role="status"></p></div>
 </section><section id="payroll-review"><h2>مراجعة الرواتب قبل الصرف</h2><p class="hint">هذه مراجعة تدريبية آلية للشهر المختار، لا تعتمد راتبًا ولا تمنع تغييره ولا تحفظ أي إقفال. تفحص فقط السجلات التجريبية المسجلة في هذا المتصفح. عدم وجود دوام لا يعني غياب الموظف.</p>
 <div class="card"><div class="formgrid"><label>الشهر<input id="review-month" type="month" value="2026-10"/></label><label>الموظف<select id="review-employee"><option value="all">جميع الموظفين</option><option value="001">موظف تجريبي 01</option><option value="002">موظف تجريبي 02</option><option value="003">موظف تجريبي 03</option></select></label></div><div aria-live="polite" class="stats mini-stats" id="review-summary"></div><p id="review-result" class="result" role="status" aria-live="polite"></p><div class="overflow"><table><thead><tr><th>الموظف</th><th>الورديات</th><th>الأساسي</th><th>الإضافي</th><th>الأجر ₪</th><th>السحوبات ₪</th><th>الدفعات ₪</th><th>المتبقي ₪</th><th>ملاحظات المراجعة</th></tr></thead><tbody id="review-rows"></tbody></table></div><div class="actions"><button class="outline" type="button" id="review-export">تصدير مراجعة CSV</button><a class="plain" href="#monthly-ledger">العودة إلى كشف الرواتب ←</a></div></div>
-<p class="hint">قد تكون اختلافات أجر الساعة مقصودة؛ راجعها يدويًا. تُحتسب الورديات الليلية كاملةً بحسب يوم بدايتها. لا يوجد خصم للاستراحة، والإضافي يبدأ بعد مجموع 8 ساعات في يوم العمل للموظف الواحد.</p></section><section id="calculator"><h2>حاسبة الرواتب والوردية</h2><p class="hint">هذه حاسبة تدريبية تعمل داخل الصفحة دون إرسال أي معلومات إلى الإنترنت. يمكن تغيير الأرقام لاختبارها.</p>
+<p class="hint">قد تكون اختلافات أجر الساعة مقصودة؛ راجعها يدويًا. تُحتسب الورديات الليلية كاملةً بحسب يوم بدايتها. لا يوجد خصم للاستراحة، والإضافي يبدأ بعد مجموع 8 ساعات في يوم العمل للموظف الواحد.</p></section><section id="annual-report"><h2>التقرير السنوي للحضور والرواتب</h2><p class="hint">يجمع هذا القسم ساعات وأجور الموظفين الوهميين من السجلات المحلية، ويتيح اختيار السنة وتصدير CSV عند تشغيل JavaScript.</p><p class="warning">هذا تقرير تجريبي فقط. لا يتصل ببيانات الموظفين الحقيقيين.</p></section><section id="calculator"><h2>حاسبة الرواتب والوردية</h2><p class="hint">هذه حاسبة تدريبية تعمل داخل الصفحة دون إرسال أي معلومات إلى الإنترنت. يمكن تغيير الأرقام لاختبارها.</p>
 <div class="card formcard"><div class="formgrid"><label>موظف وهمي<select id="selected-employee"><option value="0">موظف تجريبي 01</option><option value="1">موظف تجريبي 02</option><option value="2">موظف تجريبي 03</option></select></label><label>سعر الساعة (₪)<input id="rate" inputmode="decimal" max="10000" min="0" step="0.5" type="number" value="18"/></label><label>الساعات الأساسية للشهر<input id="basic" inputmode="decimal" max="744" min="0" step="0.5" type="number" value="160"/></label><label>الساعات الإضافية للشهر<input id="overtime" inputmode="decimal" max="744" min="0" step="0.5" type="number" value="16"/></label><label>السحوبات (₪)<input id="withdrawal" inputmode="decimal" max="100000" min="0" step="1" type="number" value="200"/></label><label>دفعات الرواتب (₪)<input id="paid" inputmode="decimal" max="100000" min="0" step="1" type="number" value="1500"/></label></div><div aria-live="polite" class="result" id="calc-results" role="status"><div>الصافي التجريبي: <strong>3,112 ₪</strong></div><div>المتبقي بعد الدفعات: <strong>1,612 ₪</strong></div></div><button class="outline" id="reset" type="button">إعادة القيم الأصلية</button><button class="outline" id="download" type="button">تصدير الكشف التجريبي CSV</button><p class="hint">إذا لم تستجب الحاسبة في عارض ملفات ChatGPT، استخدم الأقسام الثابتة بالأعلى. لا تتطلب أي منها JavaScript.</p></div>
-<div class="card"><h3>حساب وردية تعبر منتصف الليل</h3><div class="formgrid"><label>بداية الوردية<input id="from" type="time" value="20:00"/></label><label>نهاية الوردية<input id="to" type="time" value="06:00"/></label></div><p class="hint">في هذا المثال، إذا كانت النهاية أسبق من البداية تُعتبر في اليوم التالي. الورديات الأطول من 24 ساعة غير مدعومة في هذه الحاسبة.</p><div aria-live="polite" class="result" id="shift-results">المدة: <strong>10 ساعات</strong> · أساسي: <strong>8</strong> · إضافي: <strong>2</strong></div></div></section></main><footer>RAWAA DEMO 1.7 · جميع المعلومات تجريبية · دون تسجيل دخول أو اتصال سحابي</footer><script>
-(()=>{'use strict';const demo=Object.freeze([{"id":"001","name":"موظف تجريبي 01","role":"الخدمة","rate":18,"basic":160,"overtime":16,"withdrawal":200,"paid":1500},{"id":"002","name":"موظف تجريبي 02","role":"المطبخ","rate":20,"basic":160,"overtime":0,"withdrawal":300,"paid":2900},{"id":"003","name":"موظف تجريبي 03","role":"الاستقبال","rate":17,"basic":120,"overtime":10,"withdrawal":100,"paid":1000}]);const $=id=>document.getElementById(id);const ids=['rate','basic','overtime','withdrawal','paid'];const fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(v);const num=id=>{const x=Number($(id).value);return Number.isFinite(x)&&x>=0?x:null};function reset(){const p=demo[Number($('selected-employee').value)]||demo[0];ids.forEach(k=>$(k).value=p[k]);update()}function update(){let v=Object.fromEntries(ids.map(k=>[k,num(k)]));if(Object.values(v).some(x=>x===null)){$('calc-results').textContent='يرجى إدخال أرقام صحيحة غير سالبة.';return}const gross=v.basic*v.rate+v.overtime*1.5*v.rate;const net=gross-v.withdrawal;const rem=net-v.paid;$('calc-results').innerHTML='<div>الصافي التجريبي: <strong>'+fmt(net)+' ₪</strong></div><div>المتبقي بعد الدفعات: <strong>'+fmt(rem)+' ₪</strong></div>';}
+<div class="card"><h3>حساب وردية تعبر منتصف الليل</h3><div class="formgrid"><label>بداية الوردية<input id="from" type="time" value="20:00"/></label><label>نهاية الوردية<input id="to" type="time" value="06:00"/></label></div><p class="hint">في هذا المثال، إذا كانت النهاية أسبق من البداية تُعتبر في اليوم التالي. الورديات الأطول من 24 ساعة غير مدعومة في هذه الحاسبة.</p><div aria-live="polite" class="result" id="shift-results">المدة: <strong>10 ساعات</strong> · أساسي: <strong>8</strong> · إضافي: <strong>2</strong></div></div></section></main><footer>RAWAA DEMO 1.9 · جميع المعلومات تجريبية · دون تسجيل دخول أو اتصال سحابي</footer><script src="./staff.js"></script><script>
+(()=>{'use strict';const demo=window.RAWAA_STAFF.getAll();const $=id=>document.getElementById(id);const ids=['rate','basic','overtime','withdrawal','paid'];const fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(v);const num=id=>{const x=Number($(id).value);return Number.isFinite(x)&&x>=0?x:null};function reset(){const p=demo[Number($('selected-employee').value)]||demo[0];ids.forEach(k=>$(k).value=p[k]??0);update()}function update(){let v=Object.fromEntries(ids.map(k=>[k,num(k)]));if(Object.values(v).some(x=>x===null)){$('calc-results').textContent='يرجى إدخال أرقام صحيحة غير سالبة.';return}const gross=v.basic*v.rate+v.overtime*1.5*v.rate;const net=gross-v.withdrawal;const rem=net-v.paid;$('calc-results').innerHTML='<div>الصافي التجريبي: <strong>'+fmt(net)+' ₪</strong></div><div>المتبقي بعد الدفعات: <strong>'+fmt(rem)+' ₪</strong></div>';}
 function shift(){let a=$('from').value,b=$('to').value;if(!/^\d{2}:\d{2}$/.test(a)||!/^\d{2}:\d{2}$/.test(b)){$('shift-results').textContent='اختر وقتي البداية والنهاية';return}let parse=t=>Number(t.slice(0,2))*60+Number(t.slice(3,5));let start=parse(a),end=parse(b);let min=(end-start+1440)%1440;if(min===0){$('shift-results').textContent='حدد نهاية مختلفة عن البداية (لا تقبل وردية 24 ساعة هنا).';return}let hours=min/60,normal=Math.min(hours,8),extra=Math.max(hours-8,0);$('shift-results').textContent='مدة الوردية: '+fmt(hours)+' ساعة · أساسي: '+fmt(normal)+' · إضافي: '+fmt(extra);}
 function csvSafe(v){let s=String(v);if(/^[\s]*[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
 function download(){let v=Object.fromEntries(ids.map(k=>[k,num(k)]));if(Object.values(v).some(x=>x===null))return;const p=demo[Number($('selected-employee').value)]||demo[0];const net=v.basic*v.rate+v.overtime*v.rate*1.5-v.withdrawal;const record=['اسم وهمي','سعر الساعة','ساعات أساسية','ساعات إضافية','سحوبات','مدفوع','صافي الراتب','المتبقي'];const values=[p.name,v.rate,v.basic,v.overtime,v.withdrawal,v.paid,net,net-v.paid];let csv='\ufeff'+[record,values].map(arr=>arr.map(csvSafe).join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='rawaa_demo_payroll.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 $('selected-employee').addEventListener('change',reset);ids.forEach(k=>$(k).addEventListener('input',update));['from','to'].forEach(k=>$(k).addEventListener('change',shift));$('reset').addEventListener('click',reset);$('download').addEventListener('click',download);update();shift();
 })();
 </script><script>(()=>{'use strict';
-const users=[{id:'001',name:'موظف تجريبي 01',rate:18},{id:'002',name:'موظف تجريبي 02',rate:20},{id:'003',name:'موظف تجريبي 03',rate:17}];
-const RATE_KEY='RAWAA_DEMO_DEFAULT_RATES_V18';
-try{const obj=JSON.parse(localStorage.getItem(RATE_KEY)||'{}');if(obj&&typeof obj==='object'&&!Array.isArray(obj)){for(const u of users){const v=obj[u.id];if(typeof v==='number'&&Number.isFinite(v)&&v>0&&v<=10000)u.rate=v;}}}catch(e){}
-function getDefaultRates(){return Object.fromEntries(users.map(u=>[u.id,u.rate]));}
-function renderDefaultRates(){const area=document.getElementById('employee-rate-fields');if(!area)return;area.replaceChildren();for(const u of users){const label=document.createElement('label');label.textContent=u.name+' — شيكل/ساعة';const input=document.createElement('input');input.type='number';input.min='0.01';input.max='10000';input.step='0.5';input.inputMode='decimal';input.value=String(u.rate);input.setAttribute('aria-label','أجر الساعة '+u.name);input.dataset.employeeRate=u.id;label.append(input);area.append(label);input.addEventListener('change',()=>{const raw=input.value.trim(),rate=Number(raw);if(!raw||!Number.isFinite(rate)||rate<=0||rate>10000){input.value=String(u.rate);document.getElementById('rate-storage-message').textContent='أجر الساعة يجب أن يكون أكبر من صفر ولا يزيد عن 10000 شيكل.';return;}const old=u.rate;u.rate=rate;try{localStorage.setItem(RATE_KEY,JSON.stringify(getDefaultRates()));document.getElementById('rate-storage-message').textContent='حُفظ السعر الافتراضي في هذا المتصفح فقط. الورديات القديمة دون تغيير.';}catch(e){u.rate=old;input.value=String(old);document.getElementById('rate-storage-message').textContent='لا يمكن حفظ السعر في هذا المتصفح. لم يُغيّر السعر.';return;}if(!editId&&document.getElementById('att-employee').value===u.id){document.getElementById('att-rate').value=String(rate);preview();}document.dispatchEvent(new Event('rawaa:rates-changed'));});}}
-
+const users=window.RAWAA_STAFF.getAll();
 const $=id=>document.getElementById(id), KEY='RAWAA_DEMO_ATTENDANCE_V12';
 let entries=[],editId=null,persisted=true;
 const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
@@ -76,8 +94,8 @@ function dateMs(date,time){if(!/^\d{4}-\d\d-\d\d$/.test(date)||!Number.isFinite(
 function rowBounds(r){const start=dateMs(r.date,r.start);const end=dateMs(r.date,r.end)+(r.nextDay?86400000:0);return [start,end];}
 function calcMinutes(r){const [a,b]=rowBounds(r);return Number.isFinite(a)&&Number.isFinite(b)?(b-a)/60000-0:NaN;}
 function getInputs(){return {employeeId:$('att-employee').value,date:$('att-date').value,start:$('att-start').value,end:$('att-end').value,nextDay:$('att-next').checked,rate:Number($('att-rate').value),note:$('att-note').value.trim()};}
-function validate(r,avoidId=null){
-if(!users.some(x=>x.id===r.employeeId))return 'اختر موظفًا من القائمة.';
+function validate(r,avoidId=null,roster=users){
+if(!roster.some(x=>x.id===r.employeeId))return 'اختر موظفًا من القائمة.';
 if(!Number.isFinite(dateMs(r.date,r.start))||!Number.isFinite(minutes(r.end)))return 'حدد تاريخًا ووقتي حضور وانصراف صحيحين.';
 const [a,b]=rowBounds(r),span=(b-a)/60000;
 if(!(span>0&&span<=1440))return 'يجب أن تكون الوردية أكبر من صفر ولا تتجاوز 24 ساعة. تحقق من خيار اليوم التالي.';
@@ -88,7 +106,7 @@ if(entries.some(x=>x.id!==avoidId&&x.employeeId===r.employeeId&&(()=>{const [c,d
 return null;}
 function enrich(source){const sorted=[...source].sort((a,b)=>rowBounds(a)[0]-rowBounds(b)[0]||a.id.localeCompare(b.id));const used=new Map();return sorted.map(r=>{const duration=calcMinutes(r)/60;const key=r.employeeId+'|'+r.date,baseUsed=used.get(key)||0,normal=Math.max(0,Math.min(duration,8-baseUsed)),extra=duration-normal;used.set(key,baseUsed+duration);return {...r,duration,normal,extra,wage:Math.round((normal*r.rate+extra*1.5*r.rate)*100)/100};});}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(entries));persisted=true;$('storage-status').textContent='تم حفظ السجلات التجريبية على هذا المتصفح فقط. لا توجد مزامنة مع أجهزة أخرى.';}catch(e){persisted=false;$('storage-status').textContent='هذا العارض يمنع التخزين المحلي؛ السجلات مؤقتة وستختفي عند الإغلاق. افتح الملف في Safari لحفظ تجريبي إذا سمح بذلك.';}}
-function load(){try{const raw=JSON.parse(localStorage.getItem(KEY)||'[]');const problem=validateImportedBatch(raw);if(problem){persisted=false;$('storage-status').textContent='تنبيه: سجلات محفوظة غير صالحة أو متعارضة؛ لم تُحمّل ولم تُحذف من التخزين. نزّل نسخة احتياطية من بيانات التدريب قبل أي تعديل.';return;}entries=raw.map(r=>({...r}));}catch(e){persisted=false;$('storage-status').textContent='تعذرت قراءة سجلات التدريب؛ لم تُحذف البيانات المحلية الأصلية.';}}
+function load(){try{const raw=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(raw))return;for(const r of raw.slice(0,3000)){if(!r||typeof r!=='object'||typeof r.id!=='string'||r.id.length>70)continue;const candidate={id:r.id,employeeId:r.employeeId,date:r.date,start:r.start,end:r.end,nextDay:r.nextDay===true,rate:r.rate,note:typeof r.note==='string'?r.note.slice(0,120):''};if(!validate(candidate,candidate.id))entries.push(candidate);}}catch(e){persisted=false;}}
 function preview(){const r=getInputs(),msg=validate(r,editId);const box=$('attendance-preview');if(msg){box.textContent=msg;return;}
 const nearby=enrich([...entries.filter(x=>x.id!==editId),{...r,id:'preview'}]).find(x=>x.id==='preview');if(!nearby)return;
 box.textContent='ساعات عمل كاملة: '+fmt(nearby.duration)+' ساعة | أساسي: '+fmt(nearby.normal)+' | إضافي: '+fmt(nearby.extra)+' | أجر الوردية: '+fmt(nearby.wage)+' ₪';}
@@ -99,7 +117,7 @@ const body=$('attendance-rows');body.textContent='';if(!shown.length){const tr=d
 for(const r of shown){const tr=document.createElement('tr');for(const val of [users.find(x=>x.id===r.employeeId).name,r.date,r.start,r.end+(r.nextDay?' (+1 يوم)':''),fmt(r.duration),fmt(r.normal),fmt(r.extra),fmt(r.wage)]){let td=document.createElement('td');td.textContent=val;tr.appendChild(td)}
 const td=document.createElement('td'),group=document.createElement('div');group.className='row-buttons';for(const [label,act] of [['تعديل','edit'],['حذف','delete']]){const b=document.createElement('button');b.type='button';b.className='tiny-button';b.textContent=label;b.dataset.id=r.id;b.dataset.action=act;group.appendChild(b);}td.appendChild(group);tr.appendChild(td);body.appendChild(tr);}
 preview();document.dispatchEvent(new CustomEvent('rawaa:attendance-changed'));}
-function resetForm(){editId=null;$('attendance-form').reset();$('att-employee').value='001';$('att-date').value='2026-10-24';$('att-start').value='17:00';$('att-end').value='02:00';$('att-next').checked=true;$('att-rate').value='18';$('att-cancel').hidden=true;$('attendance-form-title').textContent='إضافة وردية تجريبية';$('attendance-error').hidden=true;preview();}
+function resetForm(){editId=null;$('attendance-form').reset();$('att-employee').value=users.find(x=>x.status==='active')?.id||users[0]?.id||'';$('att-date').value='2026-10-24';$('att-start').value='17:00';$('att-end').value='02:00';$('att-next').checked=true;$('att-rate').value=users.find(x=>x.id===$('att-employee').value)?.rate||18;$('att-cancel').hidden=true;$('attendance-form-title').textContent='إضافة وردية تجريبية';$('attendance-error').hidden=true;preview();}
 function edit(id){const r=entries.find(x=>x.id===id);if(!r)return;editId=id;for(const [f,k] of [['att-employee','employeeId'],['att-date','date'],['att-start','start'],['att-end','end'],['att-rate','rate'],['att-note','note']])$(f).value=r[k];$('att-next').checked=r.nextDay;$('attendance-form-title').textContent='تعديل الوردية التجريبية';$('att-cancel').hidden=false;$('attendance-error').hidden=true;preview();location.hash='attendance';}
 function csvSafe(value){const v=String(value??'');const safe=/^[\s]*[=+@\-\t\r]/.test(v)?"'"+v:v;return '"'+safe.replace(/"/g,'""')+'"';}
 function download(rows,filename){const content='\ufeff'+rows.map(row=>row.map(csvSafe).join(',')).join('\r\n');const blob=new Blob([content],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
@@ -109,20 +127,21 @@ $('att-employee').addEventListener('change',()=>{$('att-rate').value=users.find(
 $('att-filter').addEventListener('change',render);$('att-month').addEventListener('change',render);$('att-cancel').addEventListener('click',resetForm);
 $('att-export').addEventListener('click',()=>{const month=$('att-month').value,emp=$('att-filter').value;const rows=enrich(entries).filter(x=>x.date.startsWith(month)&&(emp==='all'||x.employeeId===emp));download([['الموظف','التاريخ','الحضور','الانصراف','اليوم التالي','ساعات فعلية','ساعات أساسية','ساعات إضافية','أجر الساعة ₪','الأجر ₪','ملاحظة'],...rows.map(r=>[users.find(x=>x.id===r.employeeId).name,r.date,r.start,r.end,r.nextDay?'نعم':'لا',fmt(r.duration),fmt(r.normal),fmt(r.extra),r.rate,fmt(r.wage),r.note])],'RAWAA_Demo_Attendance_'+month+'.csv');});
 $('att-clear').addEventListener('click',()=>{if(!confirm('هل تريد مسح جميع سجلات الحضور التجريبية من هذا المتصفح؟ لا يمكن التراجع.'))return;entries=[];persist();resetForm();render();});
-function validateImportedBatch(records){if(!Array.isArray(records)||records.length>3000)return 'قائمة ورديات غير صالحة أو كبيرة';const old=entries;entries=[];const ids=new Set();try{for(const r of records){if(!r||typeof r!=='object'||typeof r.id!=='string'||!r.id||r.id.length>70||ids.has(r.id))return 'رقم وردية مكرر أو غير صالح';ids.add(r.id);const candidate={id:r.id,employeeId:r.employeeId,date:r.date,start:r.start,end:r.end,nextDay:r.nextDay===true,rate:r.rate,note:r.note};if(typeof r.note!=='string'||r.note.length>120||typeof r.nextDay!=='boolean')return 'صيغة وردية غير صالحة';const err=validate(candidate);if(err)return err;entries.push(candidate);}return null;}finally{entries=old;}}
+function validateImportedBatch(records,roster=users){if(!Array.isArray(records)||records.length>3000)return 'قائمة ورديات غير صالحة أو كبيرة';const old=entries;entries=[];const ids=new Set();try{for(const r of records){if(!r||typeof r!=='object'||typeof r.id!=='string'||!r.id||r.id.length>70||ids.has(r.id))return 'رقم وردية مكرر أو غير صالح';ids.add(r.id);const candidate={id:r.id,employeeId:r.employeeId,date:r.date,start:r.start,end:r.end,nextDay:r.nextDay===true,rate:r.rate,note:r.note};if(typeof r.note!=='string'||r.note.length>120||typeof r.nextDay!=='boolean')return 'صيغة وردية غير صالحة';const err=validate(candidate,null,roster);if(err)return err;entries.push(candidate);}return null;}finally{entries=old;}}
 function replaceImported(rows){const err=validateImportedBatch(rows);if(err)throw Error(err);entries=rows.map(r=>({...r}));editId=null;resetForm();render();}
-window.RAWAA_ATTENDANCE_BRIDGE={getEntries:()=>entries.map(r=>({...r})),getCalculated:()=>enrich(entries),validateImportedBatch,replaceImported,storageKey:KEY,getDefaultRates};
-load();renderDefaultRates();render();
+window.RAWAA_ATTENDANCE_BRIDGE={getEntries:()=>entries.map(r=>({...r})),getCalculated:()=>enrich(entries),validateImportedBatch,replaceImported,storageKey:KEY};
+load();render();
+document.addEventListener('rawaa:staff-changed',()=>{if(!editId){const p=users.find(u=>u.id===$('att-employee').value);if(p)$('att-rate').value=p.rate;}render();});
 window.RAWAA_DEMO_TEST={getEntries:()=>entries.map(x=>({...x})),calc:source=>enrich(source),validate:r=>validate(r),persisted:()=>persisted};
 })();</script><script>(()=>{'use strict';
 const $=id=>document.getElementById(id), bridge=window.RAWAA_ATTENDANCE_BRIDGE;
 const KEY='RAWAA_DEMO_LEDGER_V13', fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
-const users=[{id:'001',name:'موظف تجريبي 01'},{id:'002',name:'موظف تجريبي 02'},{id:'003',name:'موظف تجريبي 03'}];
+const users=window.RAWAA_STAFF.getAll();
 let transactions=[],editId=null,storageEnabled=true;
 function validDate(d){if(typeof d!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d))return false;const t=new Date(d+'T12:00:00');return !Number.isNaN(+t)&&t.getFullYear()===Number(d.slice(0,4))&&t.getMonth()+1===Number(d.slice(5,7))&&t.getDate()===Number(d.slice(8,10));}
-function validateTransaction(x){if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||x.id.length>80)return 'معرّف العملية غير صالح';if(!users.some(u=>u.id===x.employeeId))return 'موظف غير صالح';if(!['payment','withdrawal'].includes(x.type))return 'نوع العملية غير صالح';if(!validDate(x.date))return 'تاريخ العملية غير صالح';if(typeof x.amount!=='number'||!Number.isFinite(x.amount)||x.amount<=0||x.amount>10000000||Math.round(x.amount*100)!==x.amount*100&&Math.abs(Math.round(x.amount*100)-x.amount*100)>1e-6)return 'المبلغ يجب أن يكون موجبًا ولا يتجاوز منزلتين عشريتين';if(typeof x.note!=='string'||x.note.length>100)return 'ملاحظة غير صالحة';return null;}
-function validateList(list){if(!Array.isArray(list)||list.length>4000)return 'عدد العمليات غير صالح';const ids=new Set();for(const x of list){const err=validateTransaction(x);if(err)return err;if(ids.has(x.id))return 'توجد معرفات عمليات مكررة';ids.add(x.id);}return null;}
-function snapshot(){return {format:'rawaa-demo-backup',version:1,createdAt:new Date().toISOString(),attendance:bridge.getEntries(),transactions:transactions.map(t=>({...t}))};}
+function validateTransaction(x,roster=users){if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||x.id.length>80)return 'معرّف العملية غير صالح';if(!roster.some(u=>u.id===x.employeeId))return 'موظف غير صالح';if(!['payment','withdrawal'].includes(x.type))return 'نوع العملية غير صالح';if(!validDate(x.date))return 'تاريخ العملية غير صالح';if(typeof x.amount!=='number'||!Number.isFinite(x.amount)||x.amount<=0||x.amount>10000000||Math.round(x.amount*100)!==x.amount*100&&Math.abs(Math.round(x.amount*100)-x.amount*100)>1e-6)return 'المبلغ يجب أن يكون موجبًا ولا يتجاوز منزلتين عشريتين';if(typeof x.note!=='string'||x.note.length>100)return 'ملاحظة غير صالحة';return null;}
+function validateList(list,roster=users){if(!Array.isArray(list)||list.length>4000)return 'عدد العمليات غير صالح';const ids=new Set();for(const x of list){const err=validateTransaction(x,roster);if(err)return err;if(ids.has(x.id))return 'توجد معرفات عمليات مكررة';ids.add(x.id);}return null;}
+function snapshot(){return {format:'rawaa-demo-backup',version:2,createdAt:new Date().toISOString(),employees:window.RAWAA_STAFF.export(),attendance:bridge.getEntries(),transactions:transactions.map(t=>({...t}))};}
 function load(){try{const raw=localStorage.getItem(KEY);if(raw){const arr=JSON.parse(raw);if(!validateList(arr))transactions=arr;} }catch(e){storageEnabled=false;}}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(transactions));storageEnabled=true;}catch(e){storageEnabled=false;}updateStorage();}
 function updateStorage(msg){$('fin-storage').textContent=msg|| (storageEnabled?'سجلات التدريب محفوظة في هذا المتصفح فقط، دون سحابة. نزّل نسخة JSON قبل حذف بيانات المتصفح.':'التخزين المحلي غير متاح؛ السجلات مؤقتة. استخدم تنزيل نسخة JSON للحفاظ على نسخة.');}
@@ -139,33 +158,53 @@ function showError(message){$('fin-error').textContent=message;$('fin-error').hi
 function csvSafe(value){const s=String(value??'');const safe=/^[\s]*[=+@\-\t\r]/.test(s)?"'"+s:s;return '"'+safe.replace(/"/g,'""')+'"';}
 function downloadText(contents,type,name){const blob=new Blob([contents],{type});const uri=URL.createObjectURL(blob),a=document.createElement('a');a.href=uri;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(uri),2000);}
 function downloadCsv(){const month=$('fin-month').value,filter=$('fin-filter').value;const rows=[['الموظف','الشهر','ساعات أساسية','ساعات إضافية','الأجر الإجمالي ₪','السحوبات ₪','الصافي ₪','دفعات ₪','المتبقي ₪']];for(const u of users.filter(u=>filter==='all'||u.id===filter)){const v=sumMonthly(u.id,month);rows.push([u.name,month,fmt(v.normal),fmt(v.extra),fmt(v.gross),fmt(v.withdrawals),fmt(v.net),fmt(v.paid),fmt(v.remaining)]);}downloadText('\ufeff'+rows.map(r=>r.map(csvSafe).join(',')).join('\r\n'),'text/csv;charset=utf-8','RAWAA_Demo_Month_'+month+'.csv');}
-function parseBackup(b){if(!b||typeof b!=='object'||b.format!=='rawaa-demo-backup'||b.version!==1)throw Error('هذه ليست نسخة RAWAA Demo 1.3 صالحة.');if(!Array.isArray(b.attendance)||!Array.isArray(b.transactions))throw Error('ملف النسخة يفتقد السجلات.');const attErr=bridge.validateImportedBatch(b.attendance);if(attErr)throw Error('خطأ سجل الحضور: '+attErr);const txErr=validateList(b.transactions);if(txErr)throw Error('خطأ سجل الدفعات: '+txErr);return {attendance:b.attendance,transactions:b.transactions};}
-function restoreBackup(b){const good=parseBackup(b);const ak=bridge.storageKey;let oldA,oldF;try{oldA=localStorage.getItem(ak);oldF=localStorage.getItem(KEY);}catch(e){throw Error('التخزين المحلي غير متاح في هذا العارض. افتح النسخة في Safari أو متصفح الحاسوب.');}
-try{localStorage.setItem(ak,JSON.stringify(good.attendance));localStorage.setItem(KEY,JSON.stringify(good.transactions));}catch(e){try{if(oldA===null)localStorage.removeItem(ak);else localStorage.setItem(ak,oldA);if(oldF===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,oldF);}catch(_){}throw Error('فشل حفظ النسخة؛ لم تُستبدل السجلات قيد التشغيل.');}
-bridge.replaceImported(good.attendance);transactions=good.transactions.map(x=>({...x}));editId=null;resetForm();storageEnabled=true;render();document.dispatchEvent(new Event('rawaa:finance-changed'));updateStorage('تمت استعادة النسخة التدريبية وفحص السجلات. لا توجد مزامنة سحابية.');}
+function parseBackup(b){
+ if(!b||typeof b!=='object'||b.format!=='rawaa-demo-backup'||![1,2].includes(b.version))throw Error('صيغة نسخة RAWAA غير صالحة.');
+ if(!Array.isArray(b.attendance)||!Array.isArray(b.transactions))throw Error('ملف النسخة يفتقد سجلات الدوام أو الحركات.');
+ const employees=b.version===2?b.employees:window.RAWAA_STAFF.seeded();
+ const staffErr=window.RAWAA_STAFF.validateRoster(employees);if(staffErr)throw Error('خطأ سجل الموظفين: '+staffErr);
+ const attErr=bridge.validateImportedBatch(b.attendance,employees);if(attErr)throw Error('خطأ سجل الحضور: '+attErr);
+ const txErr=validateList(b.transactions,employees);if(txErr)throw Error('خطأ سجل الدفعات: '+txErr);
+ return {employees,attendance:b.attendance,transactions:b.transactions};
+}
+function restoreBackup(b){
+ const good=parseBackup(b),ak=bridge.storageKey,sk='RAWAA_DEMO_STAFF_V19';
+ let previous={};try{for(const key of [ak,KEY,sk])previous[key]=localStorage.getItem(key);}catch(e){throw Error('التخزين المحلي غير متاح. افتح RAWAA في Safari.');}
+ try{
+  localStorage.setItem(ak,JSON.stringify(good.attendance));
+  localStorage.setItem(KEY,JSON.stringify(good.transactions));
+  localStorage.setItem(sk,JSON.stringify(good.employees));
+ }catch(e){
+  try{for(const key of [ak,KEY,sk]){if(previous[key]===null)localStorage.removeItem(key);else localStorage.setItem(key,previous[key]);}}catch(_){}throw Error('فشل حفظ النسخة؛ تم التراجع عن تغييرات الملفات المحفوظة.');
+ }
+ window.RAWAA_STAFF.replaceRoster(good.employees,{silent:true});
+ bridge.replaceImported(good.attendance);transactions=good.transactions.map(x=>({...x}));
+ editId=null;resetForm();storageEnabled=true;render();document.dispatchEvent(new Event('rawaa:staff-changed'));document.dispatchEvent(new Event('rawaa:finance-changed'));
+ updateStorage('تمت استعادة الموظفين والورديات والحركات التدريبية بعد فحصها. لا توجد مزامنة سحابية.');
+}
 $('fin-form').addEventListener('submit',e=>{e.preventDefault();const tx=fromInputs(),err=validateTransaction(tx);if(err){showError(err);return;}$('fin-error').hidden=true;transactions=editId?transactions.map(x=>x.id===editId?tx:x):[...transactions,tx];persist();$('fin-month').value=tx.date.slice(0,7);$('fin-filter').value=tx.employeeId;resetForm();render();location.hash='monthly-ledger';});
 $('fin-ledger-body').addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b)return;const tx=transactions.find(x=>x.id===b.dataset.id);if(!tx)return;if(b.dataset.action==='delete'){if(!confirm('حذف العملية التدريبية؟'))return;transactions=transactions.filter(x=>x.id!==tx.id);if(editId===tx.id)resetForm();persist();render();}else{editId=tx.id;for(const [id,key] of [['fin-employee','employeeId'],['fin-type','type'],['fin-date','date'],['fin-amount','amount'],['fin-note','note']])$(id).value=tx[key];$('fin-cancel').hidden=false;$('fin-form-title').textContent='تعديل العملية التدريبية';$('fin-error').hidden=true;location.hash='monthly-ledger';}});
 $('fin-month').addEventListener('change',render);$('fin-filter').addEventListener('change',render);$('fin-cancel').addEventListener('click',resetForm);$('fin-export').addEventListener('click',downloadCsv);
-$('fin-backup').addEventListener('click',()=>downloadText(JSON.stringify(snapshot(),null,2),'application/json;charset=utf-8','RAWAA_Demo_Backup_v1_3.json'));
-$('fin-restore').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>2*1024*1024){updateStorage('الملف أكبر من 2 ميغابايت؛ تم رفضه.');return;}try{const backup=JSON.parse(await file.text());parseBackup(backup);if(!confirm('استعادة هذه النسخة؟ ستستبدل جميع ورديات وسحوبات ودفعات المعاينة على هذا الجهاز فقط.'))return;restoreBackup(backup);}catch(err){updateStorage('رفض الاستعادة: '+err.message);}});
+$('fin-backup').addEventListener('click',()=>downloadText(JSON.stringify(snapshot(),null,2),'application/json;charset=utf-8','RAWAA_Demo_Backup_v1_9.json'));
+$('fin-restore').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];e.target.value='';if(!file)return;if(file.size>2*1024*1024){updateStorage('الملف أكبر من 2 ميغابايت؛ تم رفضه.');return;}try{const backup=JSON.parse(await file.text());parseBackup(backup);if(!confirm('استعادة هذه النسخة؟ ستستبدل بيانات الموظفين والورديات والسحوبات والدفعات التجريبية على هذا الجهاز فقط.'))return;restoreBackup(backup);}catch(err){updateStorage('رفض الاستعادة: '+err.message);}});
 document.addEventListener('rawaa:attendance-changed',render);
 $('fin-form').addEventListener('submit',()=>queueMicrotask(()=>document.dispatchEvent(new Event('rawaa:finance-changed'))));
 $('fin-ledger-body').addEventListener('click',()=>queueMicrotask(()=>document.dispatchEvent(new Event('rawaa:finance-changed'))));
 
 load();render();updateStorage();
+document.addEventListener('rawaa:staff-changed',render);
 window.RAWAA_FINANCE_TEST={validateTransaction,validateList,sumMonthly,getTransactions:()=>transactions.map(x=>({...x})),parseBackup,restoreBackup,snapshot};
 })();
 </script><script>(()=>{'use strict';
 const $=id=>document.getElementById(id);
 const A=window.RAWAA_ATTENDANCE_BRIDGE,F=window.RAWAA_FINANCE_TEST;
-const members=[{id:'001',name:'موظف تجريبي 01',role:'الخدمة',rate:18},{id:'002',name:'موظف تجريبي 02',role:'المطبخ',rate:20},{id:'003',name:'موظف تجريبي 03',role:'الاستقبال',rate:17}];
+const members=window.RAWAA_STAFF.getAll();
 const fmt=v=>Number(v).toLocaleString('en-US',{maximumFractionDigits:2});
 function el(tag,css,text){const n=document.createElement(tag);if(css)n.className=css;if(text!==undefined)n.textContent=String(text);return n;}
 function metric(label,value){const card=el('div','stat');card.append(el('small','',label),el('strong','',value));return card;}
 function row(label,value,css='moneyrow'){const d=el('div',css);d.append(el('span','',label),el('strong','',value));return d;}
 function render(){const month=$('dash-month').value,filter=$('dash-filter').value;if(!/^\d{4}-\d{2}$/.test(month))return;
  const chosen=members.filter(e=>filter==='all'||filter===e.id);
- const rates=A.getDefaultRates();for(const e of members)if(rates[e.id])e.rate=rates[e.id];
  const data=chosen.map(e=>({e,v:F.sumMonthly(e.id,month),shifts:A.getCalculated().filter(x=>x.employeeId===e.id&&x.date.slice(0,7)===month)}));
  const total={normal:0,extra:0,gross:0,withdrawals:0,net:0,paid:0,remaining:0,shifts:0};
  for(const {v} of data)for(const k of Object.keys(total))total[k]+=v[k];
@@ -187,11 +226,10 @@ function render(){const month=$('dash-month').value,filter=$('dash-filter').valu
 $('dash-month').addEventListener('change',render);$('dash-filter').addEventListener('change',render);
 document.addEventListener('rawaa:attendance-changed',render);
 document.addEventListener('rawaa:finance-changed',render);
-document.addEventListener('rawaa:rates-changed',render);
-render();window.RAWAA_DASHBOARD_TEST={render};
+document.addEventListener('rawaa:staff-changed',render);render();window.RAWAA_DASHBOARD_TEST={render};
 })();</script><script>(()=>{'use strict';
 const $=id=>document.getElementById(id);
-const employees=[{id:'001',name:'موظف تجريبي 01'},{id:'002',name:'موظف تجريبي 02'},{id:'003',name:'موظف تجريبي 03'}];
+const employees=window.RAWAA_STAFF.getAll();
 const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
 const validDate=d=>{if(typeof d!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d))return false;const y=+d.slice(0,4),m=+d.slice(5,7),day=+d.slice(8,10),check=new Date(Date.UTC(y,m-1,day));return check.getUTCFullYear()===y&&check.getUTCMonth()+1===m&&check.getUTCDate()===day;};
 const read=(day,filter)=>{
@@ -220,11 +258,11 @@ function exportCSV(){const day=$('daily-date').value,rows=read(day,$('daily-filt
 }
 $('daily-date').addEventListener('change',render);$('daily-filter').addEventListener('change',render);
 $('daily-export').addEventListener('click',exportCSV);$('daily-today').addEventListener('click',()=>{const now=new Date(),parts=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')];$('daily-date').value=parts.join('-');render();});
-document.addEventListener('rawaa:attendance-changed',render);render();
+document.addEventListener('rawaa:attendance-changed',render);document.addEventListener('rawaa:staff-changed',render);render();
 window.RAWAA_DAILY_TEST={read,render,validDate};
 })();</script><script>(()=>{'use strict';
 const $=id=>document.getElementById(id), A=window.RAWAA_ATTENDANCE_BRIDGE,F=window.RAWAA_FINANCE_TEST;
-const people=[{id:'001',name:'موظف تجريبي 01',defaultRate:18},{id:'002',name:'موظف تجريبي 02',defaultRate:20},{id:'003',name:'موظف تجريبي 03',defaultRate:17}];
+const people=window.RAWAA_STAFF.getAll();
 const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
 function csvSafe(v){const s=String(v??'');return '"'+(/^[\s]*[=+@\-\t\r]/.test(s)?"'"+s:s).replace(/"/g,'""')+'"';}
 function report(month, filter){
@@ -260,5 +298,161 @@ $('review-export').addEventListener('click',()=>{const rows=show(),month=$('revi
  const data=[['الموظف','الشهر','الورديات','ساعات أساسية','ساعات إضافية','الأجر ₪','السحوبات ₪','الدفعات ₪','المتبقي ₪','ملاحظات المراجعة'],...rows.map(r=>[r.p.name,month,r.v.shifts,fmt(r.v.normal),fmt(r.v.extra),fmt(r.v.gross),fmt(r.v.withdrawals),fmt(r.v.paid),fmt(r.v.remaining),r.notes.join('؛ ')])];
  const blob=new Blob(['\ufeff'+data.map(a=>a.map(csvSafe).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const link=document.createElement('a');const url=URL.createObjectURL(blob);link.href=url;link.download='RAWAA_Review_'+month+'.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
 });
-show();window.RAWAA_REVIEW_TEST={report,show};
-})();</script><script>if ('serviceWorker' in navigator && location.protocol === 'https:') { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(() => {}); }); }</script></body></html>
+document.addEventListener('rawaa:staff-changed',show);show();window.RAWAA_REVIEW_TEST={report,show};
+})();</script><script>if ('serviceWorker' in navigator && location.protocol === 'https:') { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(() => {}); }); }</script><script>/* RAWAA demo 1.8 — annual read-only financial report (training data only). */
+(() => {
+  'use strict';
+  const A = window.RAWAA_ATTENDANCE_BRIDGE;
+  const F = window.RAWAA_FINANCE_TEST;
+  if (!A || !F) return;
+  const people = window.RAWAA_STAFF.getAll();
+  const arMonths = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+  ];
+  const currency = (v) => Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const zero = () => ({normal: 0, extra: 0, gross: 0, withdrawals: 0, paid: 0, net: 0, remaining: 0, shifts: 0});
+  const add = (a, b) => {for (const k of Object.keys(a)) a[k] += Number(b[k] || 0); return a;};
+  const section = document.getElementById('annual-report') || document.createElement('section');
+  section.id = 'annual-report';
+  section.innerHTML = `
+    <h2>التقرير السنوي للحضور والرواتب</h2>
+    <p class="hint">تجميعة تدريبية للورديات والسحوبات والدفعات الموجودة على هذا الجهاز فقط. تُنسب الوردية الليلية بكاملها إلى شهر تاريخ بدايتها.</p>
+    <div class="card">
+      <div class="formgrid">
+        <label>السنة
+          <input type="number" min="2000" max="2099" step="1" inputmode="numeric" id="annual-year" value="2026" />
+        </label>
+        <label>الموظف
+          <select id="annual-employee">
+            <option value="all">جميع الموظفين</option>
+            <option value="001">موظف تجريبي 01</option>
+            <option value="002">موظف تجريبي 02</option>
+            <option value="003">موظف تجريبي 03</option>
+          </select>
+        </label>
+      </div>
+      <p id="annual-warning" role="status" class="hint"></p>
+    </div>
+    <div class="stats mini-stats" id="annual-summary" aria-live="polite"></div>
+    <h3>الشهور الاثنا عشر</h3>
+    <div class="card overflow"><table id="annual-month-table">
+      <thead><tr><th>الشهر</th><th>الورديات</th><th>أساسي</th><th>إضافي</th><th>الأجر ₪</th><th>السحوبات ₪</th><th>الدفعات ₪</th><th>المتبقي ₪</th></tr></thead>
+      <tbody id="annual-month-rows"></tbody>
+    </table></div>
+    <h3>إجمالي السنة لكل موظف</h3>
+    <div class="card overflow"><table>
+      <thead><tr><th>الموظف</th><th>ساعات أساسية</th><th>ساعات إضافية</th><th>الأجر ₪</th><th>السحوبات ₪</th><th>الدفعات ₪</th><th>المتبقي ₪</th></tr></thead>
+      <tbody id="annual-person-rows"></tbody>
+    </table></div>
+    <button id="annual-export" type="button" class="primary">تصدير كشف السنة CSV</button>
+    <p class="hint">لا يثبت هذا التقرير حضور الموظف أو غيابه ولا يُعتمد لصرف راتب حقيقي. الأرقام غير متزامنة بين الأجهزة.</p>
+  `;
+  const calculator = document.getElementById('calculator');
+  if (!section.isConnected) calculator.parentNode.insertBefore(section, calculator);
+  const $ = (id) => document.getElementById(id);
+  function updateAnnualEmployees(){
+    const select=$('annual-employee'),prev=select.value;
+    select.replaceChildren();
+    const all=document.createElement('option');all.value='all';all.textContent='جميع الموظفين';select.append(all);
+    for(const p of people){const option=document.createElement('option');option.value=p.id;option.textContent=p.name+(p.status==='archived'?' (مؤرشف)':'');select.append(option);}
+    select.value=[...select.options].some(o=>o.value===prev)?prev:'all';
+  }
+  updateAnnualEmployees();
+  const validYear = () => {const raw=$('annual-year').value;return /^(20\d{2})$/.test(raw) ? raw : null;};
+  const rowsFor = (year, emp) => {
+    if (!year) return [];
+    const chosen = people.filter(p => emp === 'all' || p.id === emp);
+    return Array.from({length: 12}, (_, i) => {
+      const month = year + '-' + String(i + 1).padStart(2,'0');
+      const summed = chosen.reduce((a,p) => add(a,F.sumMonthly(p.id,month)),zero());
+      return { month, name: arMonths[i], ...summed };
+    });
+  };
+  const perEmployee = (year, emp) => people.filter(p=>emp==='all'||p.id===emp).map(p => {
+    const totals=Array.from({length: 12},(_,i)=>F.sumMonthly(p.id,year+'-'+String(i+1).padStart(2,'0'))).reduce(add,zero());
+    return { name:p.name, id:p.id, ...totals };
+  });
+  function addRow(body,values,emphasize=false) {
+    const tr=document.createElement('tr');
+    for (const [i,v] of values.entries()) {
+      const td=document.createElement(i===0?'th':'td');
+      td.textContent=String(v);
+      if (emphasize) td.style.fontWeight='750';
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  }
+  function render() {
+    const year=validYear(),emp=$('annual-employee').value;
+    const warning=$('annual-warning');
+    warning.textContent=year?'':'أدخل سنة صحيحة من 2000 إلى 2099.';
+    const rows=rowsFor(year,emp),peopleRows=year?perEmployee(year,emp):[];
+    const grand=rows.reduce(add,zero());
+    $('annual-month-rows').replaceChildren();
+    for (const r of rows) addRow($('annual-month-rows'),[r.name,r.shifts,currency(r.normal),currency(r.extra),currency(r.gross),currency(r.withdrawals),currency(r.paid),currency(r.remaining)]);
+    if (rows.length) addRow($('annual-month-rows'),['مجموع السنة',grand.shifts,currency(grand.normal),currency(grand.extra),currency(grand.gross),currency(grand.withdrawals),currency(grand.paid),currency(grand.remaining)],true);
+    $('annual-person-rows').replaceChildren();
+    for (const r of peopleRows) addRow($('annual-person-rows'),[r.name,currency(r.normal),currency(r.extra),currency(r.gross),currency(r.withdrawals),currency(r.paid),currency(r.remaining)]);
+    $('annual-summary').replaceChildren();
+    for (const [label,value] of [
+      ['ساعات العمل',currency(grand.normal+grand.extra)],
+      ['الأجور السنوية',currency(grand.gross)+' ₪'],
+      ['السحوبات والدفعات',currency(grand.withdrawals+grand.paid)+' ₪'],
+      ['المتبقي السنوي',currency(grand.remaining)+' ₪'],
+    ]) {
+      const card=document.createElement('div'); card.className='stat';
+      const tag=document.createElement('small'),strong=document.createElement('strong');
+      tag.textContent=label;strong.textContent=value;card.append(tag,strong);$('annual-summary').append(card);
+    }
+    warning.className=grand.remaining < -0.000001 ? 'warning' : 'hint';
+    if (year && grand.remaining < -0.000001) warning.textContent='تنبيه: السحوبات والدفعات أكبر من الأجور المستحقة في السنة المختارة. راجع شهور الموظف على حدة.';
+    return { year,emp,rows,peopleRows,grand };
+  }
+  const csvCell=(value)=>{
+    let s=String(value??'');if(/^[\s]*[=+\-@\t\r]/.test(s))s="'"+s;
+    return '"'+s.replace(/"/g,'""')+'"';
+  };
+  function exportCsv(){
+    const report=render();if(!report.year)return;
+    const data=[['الشهر','الموظف','الورديات','ساعات أساسية','إضافية','الأجر ₪','السحوبات ₪','الدفعات ₪','المتبقي ₪']];
+    for(let i=0;i<12;i++)for(const p of people.filter(p=>report.emp==='all'||p.id===report.emp)){
+      const month=report.year+'-'+String(i+1).padStart(2,'0');const s=F.sumMonthly(p.id,month);
+      data.push([month,p.name,s.shifts,currency(s.normal),currency(s.extra),currency(s.gross),currency(s.withdrawals),currency(s.paid),currency(s.remaining)]);
+    }
+    const blob=new Blob(['\ufeff'+data.map(row=>row.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='RAWAA_Annual_Demo_'+report.year+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+  }
+  $('annual-year').addEventListener('input',render);
+  $('annual-employee').addEventListener('change',render);
+  $('annual-export').addEventListener('click',exportCsv);
+  document.addEventListener('rawaa:attendance-changed',render);
+  document.addEventListener('rawaa:finance-changed',render);
+  document.addEventListener('rawaa:staff-changed',()=>{updateAnnualEmployees();render()});
+  render();
+  window.RAWAA_ANNUAL_TEST={render,rowsFor,perEmployee};
+})();
+</script><script src="./daily-batch.js"></script><script id="rawaa-v18-sync">(()=>{'use strict';
+/* The old demo sections have independent selectors. Update the view selectors as one transaction. */
+const months=['dash-month','att-month','fin-month','review-month'];
+const employees=['dash-filter','att-filter','fin-filter','review-employee','daily-filter'];
+let updating=false;
+function synchronize(ids,source){if(updating)return;updating=true;try{for(const id of ids){const target=document.getElementById(id);if(target&&target!==source&&[...target.options||[]].some(o=>o.value===source.value)||target&&target!==source&&target.type==='month'){
+ if(target.value!==source.value){target.value=source.value;target.dispatchEvent(new Event('change',{bubbles:true}));}
+}}}finally{updating=false;}}
+document.addEventListener('change',e=>{const target=e.target;if(!target||!target.id)return;
+ if(months.includes(target.id)&&/^\d{4}-(0[1-9]|1[0-2])$/.test(target.value))synchronize(months,target);
+ if(employees.includes(target.id))synchronize(employees,target);
+},true);
+/* Another browser tab may have updated localStorage. Block stale writes until reload. */
+const watched=new Set(['RAWAA_DEMO_ATTENDANCE_V12','RAWAA_DEMO_LEDGER_V13','RAWAA_DEMO_STAFF_V19']);
+window.addEventListener('storage',e=>{if(e.storageArea!==localStorage||(e.key!==null&&!watched.has(e.key))||document.getElementById('rawaa-stale-shield'))return;
+ const overlay=document.createElement('div');overlay.id='rawaa-stale-shield';overlay.className='rawaa-stale-shield';
+ const card=document.createElement('div');card.className='rawaa-stale-card';const title=document.createElement('h2');title.textContent='تم تعديل بيانات المعاينة في تبويب آخر';
+ const p=document.createElement('p');p.textContent='لمنع فقدان سجلات الدوام أو السحوبات، أوقفنا التعديل في هذا التبويب. احفظ أي ملاحظات غير مسجلة خارج التطبيق، ثم حدّث الصفحة لقراءة أحدث البيانات.';
+ const button=document.createElement('button');button.textContent='تحديث وقراءة أحدث البيانات';button.addEventListener('click',()=>location.reload());
+ card.append(title,p,button);overlay.append(card);document.body.append(overlay);
+});
+const intro=document.createElement('p');intro.className='rawaa-v18-note';intro.textContent='تحديث 1.9: اختيار الشهر والموظف متزامن بين الأقسام، ويظهر تحذير عند تعديل بيانات التجربة من تبويب آخر.';
+const nav=document.querySelector('nav');if(nav&&nav.parentNode)nav.parentNode.insertBefore(intro,nav.nextSibling);
+})();</script></body></html>
