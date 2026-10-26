@@ -9,7 +9,7 @@ const elements=new Map();const el=id=>{if(!elements.has(id))elements.set(id,new 
 el('payslip-month').value='2026-10';el('payslip-employee').value='001';
 const context={console,document:{getElementById:el,createElement:()=>new Element(),addEventListener(){}},window:{},records,transactions:[{employeeId:'001',date:'2026-10-22',type:'withdrawal',amount:50},{employeeId:'001',date:'2026-10-23',type:'payment',amount:100}]};
 vm.createContext(context);vm.runInContext(functions+`;bridge={getCalculated:()=>enrich(records)};window.RAWAA_ATTENDANCE_BRIDGE=bridge;window.RAWAA_FINANCE_TEST={getTransactions:()=>transactions,sumMonthly};window.RAWAA_STAFF={getAll:()=>[{id:'001',name:'Test'}]};`,context);
-const last=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].at(-1)[1];vm.runInContext(last,context);
+const last=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].find(([,script])=>script.includes('window.RAWAA_PAYSLIP_TEST='))[1];vm.runInContext(last,context);
 let data=context.window.RAWAA_PAYSLIP_TEST.data();assert.equal(data.sums.normal,16);assert.equal(data.sums.extra,4);assert.equal(data.basePay,328);assert.equal(data.overtimePay,126);assert.equal(data.sums.gross,454);assert.equal(data.sums.remaining,304);
 el('payslip-month').value='';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(el('payslip-document').hidden,true);assert.equal(el('payslip-print').disabled,true);
 el('payslip-month').value='2026-11';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,0);assert.equal(el('payslip-document').hidden,false);
