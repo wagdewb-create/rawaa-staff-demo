@@ -69,11 +69,18 @@ const server=http.createServer((req,res)=>{try{
   await page.locator('#cloud-manager-change-button').click();
   await page.locator('#cloud-manager-new-email').fill('newmanager@gmail.com');
   assert.equal(await page.locator('#cloud-manager-proceed').isDisabled(),true,'transfer must require a saved encrypted backup');
+  assert.equal(await page.locator('#cloud-manager-file-saved').isDisabled(),true,'no checkbox acknowledgment before creating backup');
   await page.locator('#cloud-manager-export').click();
   await page.waitForFunction(()=>document.getElementById('cloud-manager-message')?.textContent?.includes('تم تجهيز النسخة'),null,{timeout:16000});
+  assert.equal(await page.locator('#cloud-manager-file-saved').isEnabled(),true,'checkbox unlocks after backup export');
+  assert.equal(await page.locator('#cloud-manager-file-saved').isChecked(),false,'no implied confirmation of saved backup');
   assert.equal(await page.locator('#cloud-manager-proceed').isDisabled(),true,'transfer must also require user confirmation');
   await page.locator('#cloud-manager-file-saved').check();
   assert.equal(await page.locator('#cloud-manager-proceed').isEnabled(),true,'transfer ready after encrypted export and user confirmation');
+  await page.locator('#cloud-manager-new-email').fill('anothermanager@gmail.com');
+  assert.equal(await page.locator('#cloud-manager-file-saved').isDisabled(),true,'changing target must require a new encrypted backup');
+  assert.equal(await page.locator('#cloud-manager-file-saved').isChecked(),false);
+  assert.equal(await page.locator('#cloud-manager-proceed').isDisabled(),true);
   await page.locator('#cloud-manager-transfer').getByRole('button',{name:'إلغاء'}).click();
   await page.locator('#cloud-security-account-button').click();
   await page.locator('#cloud-email-verified-status').waitFor();
@@ -172,6 +179,34 @@ const server=http.createServer((req,res)=>{try{
   assert.equal(restored.revision,rowBeforeRestore.revision+1,'successful transfer advances server version');
   assert.deepEqual(restored.payload,decoded.entries,'new manager cloud data must exactly match encrypted export');
   assert.match(await page.locator('#cloud-transfer-verified').innerText(),/المدير القديم|سحب صلاحيات|إمكانية الدخول/);
+
+  // Reproduce the user's iPhone-sized view: no giant checkbox or horizontal overflow.
+  const phone=await browser.newContext({viewport:{width:375,height:667},deviceScaleFactor:3,isMobile:true,hasTouch:true});
+  await phone.addInitScript(()=>{
+    const native=window.localStorage;
+    native.setItem('neon_mock_session','yes');
+    if(!native.getItem('neon_mock_row'))native.setItem('neon_mock_row',JSON.stringify({owner_id:'uuid-example-user-1',revision:1,payload:{}}));
+    window.__fakeCloudClient={
+      auth:{getSession:async()=>({data:{session:{id:'sess-iphone'},user:{id:'uuid-example-user-1',email:'tester@example.com',emailVerified:false}},error:null})},
+      from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:JSON.parse(native.getItem('neon_mock_row')),error:null})})})})
+    };
+  });
+  await phone.route('https://esm.sh/**',route=>route.fulfill({status:200,contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:'export const createClient = ()=>window.__fakeCloudClient;'}));
+  const phonePage=await phone.newPage();
+  await phonePage.goto(base+'/cloud.html',{waitUntil:'domcontentloaded'});
+  await phonePage.locator('#cloud-manager-change-button').click();
+  const metrics=await phonePage.evaluate(()=>{
+    const overlay=document.getElementById('cloud-manager-transfer'),dialog=overlay.querySelector('.rawaa-cloud-dialog'),check=overlay.querySelector('#cloud-manager-file-saved');
+    return {width:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
+      box:dialog.getBoundingClientRect().width,checkbox:check.getBoundingClientRect().width,
+      isDisabled:check.disabled,overflow:overlay.scrollWidth>overlay.clientWidth+1};
+  });
+  assert.equal(metrics.isDisabled,true);
+  assert.ok(metrics.checkbox>=18&&metrics.checkbox<=30,'checkbox stays normal size on iPhone: '+JSON.stringify(metrics));
+  assert.ok(metrics.box<=metrics.width,'dialog fits viewport: '+JSON.stringify(metrics));
+  assert.equal(metrics.overflow,false,'overlay has no horizontal overflow');
+  await phone.close();
+
   assert.deepEqual(errors,[],errors.join('; '));assert.deepEqual(secondErrors,[],secondErrors.join('; '));
   console.log('PASS: account, OTP, safe multi-device cloud, encrypted backup, stale transfer protection, mismatch refusal and verified read-back');
  }finally{await browser.close();}
