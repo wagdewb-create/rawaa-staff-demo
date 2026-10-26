@@ -213,6 +213,33 @@ const server=http.createServer((req,res)=>{try{
   assert.equal(metrics.overflow,false,'overlay has no horizontal overflow');
   await phone.close();
 
+  // The secure gateway closed first-party signups. A pending handover
+  // must show the existing Gmail login, never a misleading create-account button.
+  const secureContext=await browser.newContext();
+  await secureContext.addInitScript(()=>{
+    window.RAWAA_FIRST_PARTY_AUTH=true;
+    sessionStorage.setItem('rawaa_manager_transfer_target','asdfqweml09@gmail.com');
+    window.__fakeCloudClient={
+      auth:{getSession:async()=>({data:{user:null,session:null},error:null})}
+    };
+  });
+  await secureContext.route('https://esm.sh/**',route=>route.fulfill({
+    status:200,contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},
+    body:'export const createClient = ()=>window.__fakeCloudClient;'
+  }));
+  const securePage=await secureContext.newPage();
+  await securePage.goto(base+'/cloud.html',{waitUntil:'domcontentloaded'});
+  await securePage.locator('#cloud-login').waitFor({timeout:16000});
+  assert.equal(await securePage.locator('#cloud-login button').filter({hasText:'إنشاء حساب لأول مرة'}).isHidden(),true,'no signup on secure gateway');
+  assert.equal(await securePage.locator('#cloud-login input[type="email"]').inputValue(),'asdfqweml09@gmail.com');
+  assert.equal(await securePage.locator('#cloud-login input[type="email"]').getAttribute('readonly'),'','new manager target is prefilled');
+  assert.match(await securePage.locator('#cloud-login').innerText(),/تم تسجيل حساب Gmail الجديد|سجّل الدخول/);
+  await securePage.locator('#cloud-login-switch-account').click();
+  assert.equal(await securePage.locator('#cloud-login input[type="email"]').inputValue(),'');
+  assert.equal(await securePage.locator('#cloud-login input[type="email"]').getAttribute('readonly'),null);
+  assert.equal(await securePage.evaluate(()=>sessionStorage.getItem('rawaa_manager_transfer_target')),null,'switching account clears only tab-local pending address');
+  await secureContext.close();
+
   assert.deepEqual(errors,[],errors.join('; '));assert.deepEqual(secondErrors,[],secondErrors.join('; '));
   console.log('PASS: account, OTP, safe multi-device cloud, encrypted backup, stale transfer protection, mismatch refusal and verified read-back');
  }finally{await browser.close();}
