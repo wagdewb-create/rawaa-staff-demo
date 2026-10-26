@@ -275,7 +275,9 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const target=item('input');target.type='email';target.autocomplete='off';target.required=true;target.placeholder='example@gmail.com';target.id='cloud-manager-new-email';emailLabel.append(target);
   const notes=item('p','1) نزّل نسخة مشفّرة من السجلات الحالية واحفظها وكلمة مرورها. 2) افتح حساب RAWAA جديدًا بالبريد الذي تملكه وكلمة مرور RAWAA مستقلة عن Google. 3) أكّد البريد ثم استعد النسخة. 4) بعد اختبار البيانات وصلاحيات الحساب الجديد، يُلغى دخول الحساب القديم بإجراء مستقل.');
   const backup=item('button','1 · تنزيل نسخة مشفّرة قبل الانتقال');backup.type='button';backup.id='cloud-manager-export';
-  const confirmSaved=item('label');const saved=item('input');saved.type='checkbox';saved.id='cloud-manager-file-saved';confirmSaved.append(saved,document.createTextNode(' تأكدت أن ملف النسخة المشفّرة موجود على جهازي وأنني أعرف كلمة مرورها.'));
+  const stepInfo=item('p','الخطوة 1 من 2: اضغط زر التنزيل أولًا، أنشئ كلمة مرور قوية للنسخة، ثم تحقّق من وجود ملف RAWAA_Manager_Transfer في تطبيق الملفات.');
+  stepInfo.id='cloud-manager-step-info';
+  const confirmSaved=item('label');confirmSaved.className='rawaa-confirm-line';const saved=item('input');saved.type='checkbox';saved.id='cloud-manager-file-saved';saved.disabled=true;confirmSaved.append(saved,document.createTextNode(' تأكدت أن ملف النسخة المشفّرة موجود على جهازي وأنني أعرف كلمة مرورها.'));
   const go=item('button','2 · تسجيل الخروج لإنشاء حساب المدير الجديد');go.type='button';go.disabled=true;go.id='cloud-manager-proceed';
   const message=item('p');message.id='cloud-manager-message';message.setAttribute('role','status');
   const close=item('button','إلغاء');close.type='button';close.onclick=()=>overlay.remove();
@@ -285,7 +287,12 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    go.disabled=!(downloaded&&saved.checked&&ok&&rev===exportRevision&&localRev===exportLocalRevision&&!hasUnsubmittedForm);
    return ok;
   };
-  target.oninput=()=>{downloaded=false;validate();};
+  target.oninput=()=>{
+   downloaded=false;exportRevision=-1;exportLocalRevision=-1;exportFingerprint='';
+   saved.disabled=true;saved.checked=false;
+   stepInfo.textContent='الخطوة 1 من 2: نزّل نسخة مشفّرة من السجلات الحالية بعد اختيار Gmail الصحيح.';
+   validate();
+  };
   saved.onchange=validate;
   backup.onclick=async()=>{
    if(!validate()){message.textContent='أدخل بريد Gmail جديدًا مختلفًا عن حساب المدير الحالي.';return;}
@@ -300,6 +307,8 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
     if(success){
      await checkServerVersion();
      downloaded=true;exportRevision=exportAtRevision;exportLocalRevision=exportAtLocalRevision;exportFingerprint=hash;
+     saved.disabled=false;saved.checked=false;
+     stepInfo.textContent='الخطوة 2 من 2: افتح تطبيق الملفات، وابحث عن RAWAA_Manager_Transfer، ثم فعّل المربع الصغير أدناه إذا كان الملف موجودًا وكلمة مروره محفوظة.';
      message.textContent='تم تجهيز النسخة المشفّرة. '+transferSummary(snapshot)+'. تحقّق من حفظ الملف وكلمة مروره، ثم ضع علامة التأكيد. إذا تغير أي سجل بعدها يجب تنزيل نسخة أحدث.';
     }
     else message.textContent='لم تُنزّل نسخة احتياطية. لن يُسمح بالانتقال.';
@@ -334,7 +343,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
     message.textContent='لم يحدث انتقال: '+safe(e.message);go.disabled=false;
    }
   };
-  panel.append(title,lead,oldEmail,emailLabel,notes,backup,confirmSaved,go,message,close);
+  panel.append(title,lead,oldEmail,emailLabel,notes,backup,stepInfo,confirmSaved,go,message,close);
   overlay.append(panel);document.body.append(overlay);
  }
 
@@ -404,7 +413,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
  }
  function style(){
-  const s=item('style');s.textContent='.rawaa-cloud-overlay{position:fixed;inset:0;z-index:999999;background:#082e28;display:grid;place-items:center;overflow:auto;padding:16px;direction:rtl}.rawaa-cloud-dialog{background:#fff;color:#103b30;max-width:470px;width:100%;box-sizing:border-box;padding:24px;border-radius:17px;box-shadow:0 18px 70px #0004}.rawaa-cloud-dialog h2{margin:0 0 10px}.rawaa-cloud-dialog input{display:block;width:100%;box-sizing:border-box;min-height:45px;margin:6px 0 13px;padding:8px;border-radius:8px;border:1px solid #aec9b7;font:inherit}.rawaa-cloud-dialog label{display:block;font-weight:650;font-size:13px}.rawaa-cloud-dialog button{min-height:44px;margin:5px 5px 5px 0;padding:8px 14px;border-radius:9px;color:#fff;background:#103e34;border:0;font:inherit;font-weight:bold;cursor:pointer}.rawaa-cloud-dialog button[disabled]{opacity:.55}.rawaa-cloud-dialog p{font-size:13px;color:#65776d}.rawaa-cloud-bar{max-width:1050px;margin:12px auto;padding:12px 15px;background:#eaf4ef;border:1px solid #a1cabb;border-radius:13px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;direction:rtl}.rawaa-cloud-bar span{flex:1 1 260px;font-weight:bold;font-size:13px}.rawaa-cloud-actions{display:flex;gap:7px;flex-wrap:wrap}.rawaa-cloud-actions button{padding:9px 12px;min-height:43px;border:1px solid #2a664d;background:#fff;color:#15513c;font:inherit;font-weight:700;border-radius:8px;cursor:pointer}@media(max-width:520px){.rawaa-cloud-actions{width:100%}.rawaa-cloud-actions button{flex:1 1 40%}}';document.head.append(s);
+  const s=item('style');s.textContent='.rawaa-cloud-overlay{position:fixed;inset:0;z-index:999999;background:#082e28;display:flex;align-items:safe center;justify-content:center;overflow-x:hidden;overflow-y:auto;padding:16px;direction:rtl;width:100%;max-width:100vw;box-sizing:border-box}.rawaa-cloud-dialog{background:#fff;color:#103b30;max-width:470px;width:100%;min-width:0;box-sizing:border-box;padding:clamp(14px,4vw,24px);border-radius:17px;box-shadow:0 18px 70px #0004;overflow-wrap:anywhere}.rawaa-cloud-dialog h2{margin:0 0 10px}.rawaa-cloud-dialog input:not([type="checkbox"]):not([type="file"]){display:block;width:100%;min-width:0;box-sizing:border-box;min-height:45px;margin:6px 0 13px;padding:8px;border-radius:8px;border:1px solid #aec9b7;font:inherit;font-size:max(16px,1em)}.rawaa-cloud-dialog input[type="checkbox"]{display:inline-block;appearance:auto;width:21px;height:21px;min-width:21px;min-height:21px;margin:0;padding:0;vertical-align:middle;flex-shrink:0;accent-color:#103e34}.rawaa-cloud-dialog .rawaa-confirm-line{display:flex;align-items:center;gap:10px;line-height:1.7;padding:12px 4px;overflow-wrap:anywhere}.rawaa-cloud-dialog .rawaa-confirm-line:has(input:disabled){opacity:.6}.rawaa-cloud-dialog #cloud-manager-step-info{border-inline-start:3px solid #ca9b51;padding:9px 12px;background:#f5f7f0;margin:12px 0}.rawaa-cloud-dialog #cloud-manager-export,.rawaa-cloud-dialog #cloud-manager-proceed{width:100%;margin:7px 0;line-height:1.6;white-space:normal;min-height:48px}.rawaa-cloud-dialog #cloud-manager-new-email{direction:ltr;text-align:left}.rawaa-cloud-dialog label{display:block;font-weight:650;font-size:13px}.rawaa-cloud-dialog button{min-height:44px;margin:5px 5px 5px 0;padding:8px 14px;border-radius:9px;color:#fff;background:#103e34;border:0;font:inherit;font-weight:bold;cursor:pointer}.rawaa-cloud-dialog button[disabled]{opacity:.55}.rawaa-cloud-dialog p{font-size:13px;color:#65776d}.rawaa-cloud-bar{max-width:1050px;margin:12px auto;padding:12px 15px;background:#eaf4ef;border:1px solid #a1cabb;border-radius:13px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;direction:rtl}.rawaa-cloud-bar span{flex:1 1 260px;font-weight:bold;font-size:13px}.rawaa-cloud-actions{display:flex;gap:7px;flex-wrap:wrap}.rawaa-cloud-actions button{padding:9px 12px;min-height:43px;border:1px solid #2a664d;background:#fff;color:#15513c;font:inherit;font-weight:700;border-radius:8px;cursor:pointer}@media(max-width:520px){.rawaa-cloud-actions{width:100%}.rawaa-cloud-actions button{flex:1 1 40%}}';document.head.append(s);
  }
  async function login(){
   const overlay=item('div',undefined,'rawaa-cloud-overlay');overlay.id='cloud-login';
