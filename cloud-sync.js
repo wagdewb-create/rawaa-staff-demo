@@ -140,13 +140,33 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    download('RAWAA_Cloud_Backup_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({format:'rawaa-cloud-backup-v1',createdAt:new Date().toISOString(),data:localStorage._snapshot()},null,2));
    statusMsg('تم تجهيز النسخة. تحذير: ملف JSON غير مشفّر!');
   };
+  const restore=item('button','استعادة نسخة احتياطية');restore.type='button';
+  const restoreInput=item('input');restoreInput.type='file';restoreInput.accept='.json,application/json';restoreInput.hidden=true;
+  restore.onclick=()=>restoreInput.click();
+  restoreInput.onchange=async()=>{
+   const file=restoreInput.files?.[0];restoreInput.value='';if(!file)return;
+   try{
+    if(file.size>4500000)throw Error('الملف أكبر من الحد المسموح.');
+    const parsed=JSON.parse(await file.text());
+    if(parsed.format!=='rawaa-cloud-backup-v1')throw Error('ملف النسخة الاحتياطية غير مدعوم.');
+    const data=check(parsed.data);
+    if(localRev!==storedRev)throw Error('هناك تغييرات غير محفوظة. انتظر تأكيد المزامنة أولاً.');
+    if(!confirm('استعادة هذه النسخة ستستبدل جميع موظفيك ودوامهم وسحوباتهم الموجودة حاليًا في السحابة. نزّل نسخة من البيانات الحالية قبل المتابعة. هل أنت متأكد؟'))return;
+    await queue;if(stopped)throw Error('توقفت المزامنة.');
+    await checkServerVersion();
+    const result=await client.from(TABLE).update({payload:data,revision:rev+1,updated_at:new Date().toISOString()})
+     .eq('owner_id',user.id).eq('revision',rev).select('revision').maybeSingle();
+    if(result.error||!result.data)throw Error(result.error?.message||'جهاز آخر عدّل السجلات. أُلغيت الاستعادة.');
+    location.reload();
+   }catch(e){warn('تعذرت الاستعادة: '+safe(e.message));}
+  };
   const importOld=item('button','نقل بيانات الجهاز السابق');importOld.onclick=importOldVault;
   const refresh=item('button','فحص تحديثات الأجهزة');refresh.onclick=poll;
   const signOut=item('button','تسجيل الخروج');signOut.onclick=async()=>{
    if(localRev!==storedRev){await flush();if(stopped)return;}
    await client.auth.signOut();location.reload();
   };
-  actions.append(backup,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
+  actions.append(backup,restore,restoreInput,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
   const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
  }
  function style(){
