@@ -235,7 +235,12 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
       const response=await client.auth.emailOtp.sendVerificationOtp({email:user.email,type:'email-verification'});
       if(response.error)throw Error(response.error.message||'تعذر إرسال الرمز.');
       lastSent=Date.now();result.textContent='إذا كان البريد يدعم استلام الرسائل، افحص Gmail والبريد غير المرغوب وأدخل رمز التحقق. لا تشارك الرمز في المحادثة.';
-    }catch(e){result.textContent='فشل إرسال الرمز: '+safe(e.message);}
+    }catch(e){
+      const code=String(e?.message||'');
+      result.textContent=/\b401\b|unauthorized|unauthenticated/i.test(code)
+       ?'رفض الخادم إرسال الرمز لأن جلسة التحقق غير معتمدة حاليًا (401). افتح RAWAA على Safari وأعد تحميل الصفحة ثم جرّب مرة أخرى. إذا استمرت المشكلة، سجّل الدخول بالبريد الجديد نفسه؛ لن يؤدي ذلك إلى حذف البيانات.'
+       :'فشل إرسال الرمز: '+safe(e.message);
+    }
     finally{send.disabled=false;}
   };
   form.onsubmit=async event=>{
