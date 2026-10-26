@@ -25,6 +25,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
  const SELECT='owner_id,revision,payload,updated_at';
  let client=null,user=null,rev=0,queue=Promise.resolve(),localRev=0,storedRev=0,stopped=false,pulling=false,editingStarted=false;
  let syncTimer=null,pollTimer=null,status=null,head=null;let loggedIn=false;
+ let lastActivity=Date.now(),hasUnsubmittedForm=false;const RELOAD_IDLE_MS=45000;
  const $=id=>document.getElementById(id);
  const safe=message=>String(message||'فشل الاتصال');
  function statusMsg(m,error=false){if(status){status.textContent=m;status.style.color=error?'#a72820':'#165d42';}}
@@ -38,13 +39,46 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const box=item('div',undefined,'rawaa-cloud-dialog');
   box.append(item('h2','توقفت مزامنة RAWAA'),item('p',text));
   const save=item('button','تنزيل نسخة طوارئ من التعديلات غير المرسلة');
-  save.type='button';save.onclick=()=>download('RAWAA_Unsent_Changes_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({format:'rawaa-cloud-emergency-v1',entries:localStorage._snapshot()},null,2));
+  save.type='button';save.onclick=async()=>{try{await encryptedDownload('RAWAA_Unsent_Changes_'+new Date().toISOString().slice(0,10)+'.json',localStorage._snapshot());}catch(e){statusMsg('لم تُنشأ نسخة الطوارئ: '+safe(e.message),true);}};
   const retry=item('button','إعادة المحاولة');retry.type='button';retry.onclick=async()=>{overlay.remove();stopped=false;try{await checkServerVersion();schedule();}catch(e){warn('تعذر استئناف الحفظ: '+safe(e.message),true);}};
   const reload=item('button','تحميل أحدث نسخة من السحابة');reload.type='button';reload.onclick=()=>{
    if(confirm('قد تضيع المدخلات غير المحفوظة. صدّر نسخة طوارئ أولًا. متابعة؟'))location.reload();
   };
-  box.append(item('p','ملف الطوارئ JSON غير مشفّر. احفظه في مكان خاص واحذفه بعد التأكد من استعادة البيانات.'));box.append(save,retry,reload);
+  box.append(item('p','نسخة الطوارئ مشفّرة بكلمة مرور تختارها. احفظ الملف وكلمة المرور في مكان آمن.'));box.append(save,retry,reload);
   overlay.append(box);document.body.append(overlay);
+ }
+ async function encryptedDownload(filename,entries){
+  if(!crypto?.subtle)throw Error('هذا المتصفح لا يدعم التشفير اللازم للنسخ الاحتياطية.');
+  const pass=prompt('أنشئ كلمة مرور للنسخة المشفّرة (12 حرفًا على الأقل):');if(pass===null)return false;
+  if(pass.length<12)throw Error('استخدم كلمة مرور أطول لحماية النسخة.');
+  if(prompt('أعد كتابة كلمة مرور النسخة:')!==pass)throw Error('كلمتا المرور غير متطابقتين.');
+  const encoder=new TextEncoder(),salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const base=await crypto.subtle.importKey('raw',encoder.encode(pass),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:310000},base,{name:'AES-GCM',length:256},false,['encrypt']);
+  const encrypted=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoder.encode(JSON.stringify({kind:'rawaa-work-data-v1',entries:check(entries)}))));
+  const b64=bytes=>{let str='';for(let i=0;i<bytes.length;i+=16000)str+=String.fromCharCode(...bytes.subarray(i,i+16000));return btoa(str);};
+  const vault={format:'RAWAA_WORK_AES256_GCM_V1',version:1,salt:b64(salt),iv:b64(iv),ciphertext:b64(encrypted)};
+  download(filename,JSON.stringify({format:'RAWAA_ENCRYPTED_BACKUP_V1',createdAt:new Date().toISOString(),vault},null,2));return true;
+ }
+ async function decodeBackup(parsed){
+  if(parsed.format==='rawaa-cloud-backup-v1'){
+   if(!confirm('هذه نسخة JSON قديمة وغير مشفّرة. هل تريد متابعة الاستعادة؟'))return null;
+   return check(parsed.data);
+  }
+  const vault=parsed.vault;
+  if(parsed.format!=='RAWAA_ENCRYPTED_BACKUP_V1'||vault?.format!=='RAWAA_WORK_AES256_GCM_V1'||vault.version!==1)throw Error('النسخة ليست ملف RAWAA مشفّرًا صالحًا.');
+  const pass=prompt('أدخل كلمة مرور النسخة المشفّرة:');if(pass===null)return null;
+  const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+  let plaintext;
+  try{
+   const salt=bytes(vault.salt),iv=bytes(vault.iv);if(salt.length!==16||iv.length!==12)throw Error('invalid iv');
+   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+   const key=await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:310000},base,{name:'AES-GCM',length:256},false,['decrypt']);
+   plaintext=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,bytes(vault.ciphertext));
+  }catch(_){throw Error('كلمة المرور غير صحيحة أو الملف تالف.');}
+  const parsedContent=JSON.parse(new TextDecoder().decode(plaintext));
+  if(parsedContent.kind!=='rawaa-work-data-v1')throw Error('نسخة البيانات غير مدعومة.');
+  return check(parsedContent.entries);
  }
  function download(filename,content){const blob=new Blob([content],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);}
  function check(data){if(!data||typeof data!=='object'||Array.isArray(data)||Object.keys(data).length>35)throw Error('تنسيق سجلات غير مقبول.');
@@ -93,8 +127,12 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   if(!loggedIn||stopped||pulling||localRev!==storedRev)return;
   pulling=true;
   try{const row=await getRow();if(row&&Number(row.revision)!==rev){
+   const active=document.activeElement;
+   const fieldActive=!!(active&&active.matches&&active.matches('input, textarea, select, [contenteditable="true"]'));
+   const idle=!hasUnsubmittedForm&&!fieldActive&&(Date.now()-lastActivity>RELOAD_IDLE_MS||document.visibilityState==='hidden');
+   if(idle){stopped=true;statusMsg('وصل تحديث من جهاز آخر؛ يجري فتح أحدث السجلات.');location.reload();return;}
    stopped=true;
-   warn('هناك تحديث محفوظ من جهاز آخر. حدّث الصفحة لجلبه. إذا أدخلت تغييرات محلية، صدّرها أولًا.',true);
+   warn('وصل تحديث من جهاز آخر (نسخة '+Number(row.revision)+'). لن تُستبدل مسودتك؛ صدّر نسخة طوارئ إن لزم، ثم اختر تحميل أحدث نسخة من السحابة.',true);
   }}catch(e){statusMsg('تتعذر مراجعة تغييرات الأجهزة الأخرى حاليًا؛ تحقق من الشبكة.',true);}finally{pulling=false;}
  }
  async function loadExistingScripts(){
@@ -135,10 +173,10 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const h=item('strong','RAWAA | السحابة');status=item('span','✓ تم تحميل الحساب');
   const userInfo=item('small',user.email||'الحساب الحالي');
   const actions=item('div',undefined,'rawaa-cloud-actions');
-  const backup=item('button','تنزيل نسخة احتياطية');backup.onclick=async()=>{
-   if(localRev!==storedRev){await flush();if(stopped)return;}
-   download('RAWAA_Cloud_Backup_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({format:'rawaa-cloud-backup-v1',createdAt:new Date().toISOString(),data:localStorage._snapshot()},null,2));
-   statusMsg('تم تجهيز النسخة. تحذير: ملف JSON غير مشفّر!');
+  const backup=item('button','تنزيل نسخة احتياطية مشفّرة');backup.onclick=async()=>{
+   try{if(localRev!==storedRev){await flush();if(stopped)return;}
+    if(await encryptedDownload('RAWAA_Cloud_Backup_'+new Date().toISOString().slice(0,10)+'.json',localStorage._snapshot()))statusMsg('✓ تم تجهيز نسخة مشفّرة؛ احفظ كلمة المرور منفصلة.');
+   }catch(e){statusMsg('تعذّر إنشاء النسخة: '+safe(e.message),true);}
   };
   const restore=item('button','استعادة نسخة احتياطية');restore.type='button';
   const restoreInput=item('input');restoreInput.type='file';restoreInput.accept='.json,application/json';restoreInput.hidden=true;
@@ -148,8 +186,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    try{
     if(file.size>4500000)throw Error('الملف أكبر من الحد المسموح.');
     const parsed=JSON.parse(await file.text());
-    if(parsed.format!=='rawaa-cloud-backup-v1')throw Error('ملف النسخة الاحتياطية غير مدعوم.');
-    const data=check(parsed.data);
+    const data=await decodeBackup(parsed);if(!data)return;
     if(localRev!==storedRev)throw Error('هناك تغييرات غير محفوظة. انتظر تأكيد المزامنة أولاً.');
     if(!confirm('استعادة هذه النسخة ستستبدل جميع موظفيك ودوامهم وسحوباتهم الموجودة حاليًا في السحابة. نزّل نسخة من البيانات الحالية قبل المتابعة. هل أنت متأكد؟'))return;
     await queue;if(stopped)throw Error('توقفت المزامنة.');
@@ -203,7 +240,11 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    storedRev=localRev=0;loggedIn=true;
    localStorage._observe(schedule);
    statusMsg('✓ متصل بالسحابة؛ البيانات متاحة على الأجهزة المتصلة بالحساب');
-   pollTimer=setInterval(poll,20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')poll();});
+   const track=e=>{lastActivity=Date.now();if((e.type==='input'||e.type==='change')&&e.target?.closest?.('form'))hasUnsubmittedForm=true;};
+   document.addEventListener('pointerdown',track,true);document.addEventListener('input',track,true);document.addEventListener('change',track,true);
+   document.addEventListener('submit',()=>{hasUnsubmittedForm=false;lastActivity=Date.now();},true);
+   document.addEventListener('reset',()=>{hasUnsubmittedForm=false;lastActivity=Date.now();},true);
+   pollTimer=setInterval(poll,12000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){lastActivity=Date.now();poll();}});
    window.addEventListener('beforeunload',e=>{if(localRev!==storedRev){e.preventDefault();e.returnValue='';}});
    window.addEventListener('online',()=>{if(!stopped&&localRev!==storedRev)flush();else poll();});
   }catch(e){warn('فشل تحميل حساب RAWAA: '+safe(e.message),true);}
