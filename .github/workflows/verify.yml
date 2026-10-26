@@ -35,6 +35,7 @@ jobs:
         run: |
           node tests/work-browser.cjs
           node tests/cloud-browser.cjs
+          node tests/transfer-recovery.cjs
       - name: Test iPhone first-party authentication gateway
         run: node tests/first-party.cjs
       - name: Check live Neon Auth loading (no test account created)
