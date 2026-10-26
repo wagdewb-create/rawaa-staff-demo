@@ -1,0 +1,29 @@
+name: RAWAA staff checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JS syntax
+        run: |
+          node --check staff.js
+          node --check work-vault.js
+          node --check daily-batch.js
+          node --check weekly-report.js
+      - name: Verify payroll and staff
+        run: |
+          node tests/payroll-unit.cjs
+          node tests/bulk-staff.cjs
+          node tests/staff-rename.cjs
+      - name: Verify encrypted one-device work mode
+        run: node tests/work-vault.cjs
