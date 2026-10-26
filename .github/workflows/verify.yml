@@ -35,3 +35,5 @@ jobs:
         run: |
           node tests/work-browser.cjs
           node tests/cloud-browser.cjs
+      - name: Check live Neon Auth loading (no test account created)
+        run: node tests/cloud-live-sdk.cjs
