@@ -29,5 +29,8 @@ function exportCsv(){const r=report($('weekly-start').value,$('weekly-filter').v
  const blob=new Blob(['\ufeff'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='RAWAA_Week_'+r.start+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 $('weekly-start').addEventListener('change',render);$('weekly-filter').addEventListener('change',render);
 $('weekly-export').addEventListener('click',exportCsv);document.addEventListener('rawaa:attendance-changed',render);document.addEventListener('rawaa:staff-changed',render);
+const today=window.RAWAA_RESTAURANT_TODAY();
+const weekStart=new Date(today+'T00:00:00Z');weekStart.setUTCDate(weekStart.getUTCDate()-6);
+$('weekly-start').value=weekStart.toISOString().slice(0,10);
 render();window.RAWAA_WEEKLY_TEST={report,render,validDay,endOfWeek};
 })();
