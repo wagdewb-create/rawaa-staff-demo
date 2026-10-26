@@ -51,6 +51,7 @@ const server=http.createServer((req,res)=>{try{
   page.on('dialog',dialog=>dialog.accept());
   await page.getByRole('button',{name:'إنشاء حساب لأول مرة'}).click();
   await page.locator('#staff-manage-cards .staff-manage-card').first().waitFor({timeout:16000});
+  assert.equal(await page.getByRole('button',{name:'استعادة نسخة احتياطية'}).count(),1,'restore action available');
   await page.locator('#staff-manage-cards [data-rename-staff="001"]').click();
   await page.locator('.staff-inline-rename input').fill('مشرف السحابة');
   await page.locator('.staff-inline-rename button[type="submit"]').click();
