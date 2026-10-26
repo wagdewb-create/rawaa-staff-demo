@@ -75,10 +75,24 @@ const server=http.createServer((req,res)=>{try{
   await second.locator('.staff-inline-rename input').fill('مشرف النسخة الثانية');
   await second.locator('.staff-inline-rename button[type="submit"]').click();
   await second.waitForFunction(()=>JSON.parse(window.localStorage.getItem('neon_mock_row'))?.revision===2,null,{timeout:12000});
+  // If there are NO unsubmitted form drafts, the old device must load
+  // the newer revision automatically instead of showing a blocking popup.
+  await page.getByRole('button',{name:'فحص تحديثات الأجهزة'}).click();
+  await page.locator('#staff-manage-cards .staff-manage-card strong').filter({hasText:'مشرف النسخة الثانية'}).first().waitFor({timeout:16000});
+  assert.equal(await page.locator('#cloud-sync-lock').count(),0,'clean device must not show a blocking conflict modal');
+  // A genuinely unsubmitted form draft should remain intact and be protected.
+  await page.locator('#staff-manage-cards [data-rename-staff="001"]').click();
+  await page.locator('.staff-inline-rename input').fill('مسودة غير محفوظة على الهاتف');
+  await second.locator('#staff-manage-cards [data-rename-staff="001"]').click();
+  await second.locator('.staff-inline-rename input').fill('تحديث من الجهاز الثاني');
+  await second.locator('.staff-inline-rename button[type="submit"]').click();
+  await second.waitForFunction(()=>JSON.parse(window.localStorage.getItem('neon_mock_row'))?.revision===3,null,{timeout:12000});
   await page.getByRole('button',{name:'فحص تحديثات الأجهزة'}).click();
   await page.locator('#cloud-sync-lock').waitFor({timeout:15000});
-  assert.match(await page.locator('#cloud-sync-lock').innerText(),/تحديث|تغييرات/);
+  assert.match(await page.locator('#cloud-sync-lock').innerText(),/نسخة طوارئ|مسودة/);
+  assert.equal(await page.locator('.staff-inline-rename input').inputValue(),'مسودة غير محفوظة على الهاتف','unfinished draft must not disappear');
+  assert.equal(await page.locator('#cloud-sync-lock button').filter({hasText:'إعادة المحاولة'}).isHidden(),true,'retry must not suggest merging conflicting writes');
   assert.deepEqual(errors,[],errors.join('; '));assert.deepEqual(secondErrors,[],secondErrors.join('; '));
-  console.log('PASS: account gate, cloud write/revision, synced name on second browser tab, no page errors (mock Neon)');
+  console.log('PASS: cloud login, AES backup, multi-device safe auto-refresh and preservation of an unsaved draft');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
