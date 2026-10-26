@@ -25,7 +25,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
  const SELECT='owner_id,revision,payload,updated_at';
  let client=null,user=null,rev=0,queue=Promise.resolve(),localRev=0,storedRev=0,stopped=false,pulling=false,editingStarted=false;
  let syncTimer=null,pollTimer=null,status=null,head=null;let loggedIn=false;
- let hasUnsubmittedForm=false;
+ let hasUnsubmittedForm=false,isNewEmptyWorkspace=false;
  const $=id=>document.getElementById(id);
  const safe=message=>String(message||'فشل الاتصال');
  function statusMsg(m,error=false){if(status){status.textContent=m;status.style.color=error?'#a72820':'#165d42';}}
@@ -251,6 +251,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
       if(check.error)throw Error(check.error.message||'تعذر تحديث حالة الحساب.');
       if(check.data?.user?.id===user.id&&check.data.user.emailVerified===true){
         user=check.data.user;
+        refreshNewManagerSetup();
         verification.textContent='✓ تم تأكيد Gmail بنجاح.';
         const account=$('cloud-security-account-button');if(account)account.textContent='✓ Gmail مؤكَّد · إعدادات الأمان';
         send.hidden=true;form.hidden=true;
@@ -410,6 +411,46 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   overlay.append(panel);document.body.append(overlay);
  }
 
+
+ function refreshNewManagerSetup(){
+  if(!$('cloud-manager-setup'))return;
+  const verified=!!user?.emailVerified;
+  $('cloud-manager-setup-verified').textContent=verified
+   ?'✓ Gmail مؤكّد؛ يمكن الآن استعادة النسخة المشفّرة.'
+   :'لم يتم تأكيد Gmail بعد. افتح إعدادات الأمان، واطلب رمز التحقق إلى البريد الجديد.';
+  $('cloud-manager-setup-restore').disabled=!verified;
+ }
+ function showNewManagerSetup(){
+  if($('cloud-manager-setup'))return;
+  const panel=item('section',undefined,'rawaa-cloud-bar rawaa-cloud-setup');
+  panel.id='cloud-manager-setup';
+  const heading=item('h3','إكمال إعداد حساب RAWAA الجديد');
+  const email=item('p','الحساب المفتوح: '+String(user?.email||'غير معروف'));
+  const textNode=item('p','هذه مساحة عمل فارغة (الإصدار 0)؛ لم تُنقل إليها بيانات الموظفين من الحساب القديم. أكّد البريد ثم استعد ملف RAWAA_Manager_Transfer المشفّر.');
+  const state=item('p');state.id='cloud-manager-setup-verified';state.setAttribute('role','status');
+  const buttons=item('div',undefined,'rawaa-cloud-actions');
+  const verify=item('button','1 · تأكيد Gmail الجديد');verify.type='button';verify.id='cloud-manager-setup-verify';
+  verify.onclick=()=>{if(!$('cloud-account-security'))accountSecurity();};
+  const restore=item('button','2 · استعادة النسخة المشفّرة');restore.type='button';restore.id='cloud-manager-setup-restore';restore.disabled=true;
+  restore.onclick=()=>{if(user?.emailVerified)$('cloud-restore-file-input')?.click();};
+  const refresh=item('button','تحديث حالة تأكيد البريد');refresh.type='button';refresh.id='cloud-manager-setup-recheck';
+  refresh.onclick=async()=>{
+   refresh.disabled=true;
+   try{
+    const result=await client.auth.getSession();
+    if(result.error)throw Error(result.error.message||'تعذر الاتصال.');
+    if(!result.data?.session||result.data.user?.id!==user.id)throw Error('انتهت جلسة الحساب الحالي. سجّل الدخول مرة أخرى.');
+    user=result.data.user;refreshNewManagerSetup();
+   }catch(error){state.textContent='تعذّر التحقق من الحساب الآن: '+safe(error.message);}
+   finally{refresh.disabled=false;}
+  };
+  const note=item('p','كلمة مرور النسخة تختلف عن كلمة مرور Gmail. لا ترسل رمز التحقق أو كلمة مرور التشفير في المحادثة. سيبقى المدير القديم قادرًا على الوصول حتى اكتمال النقل والتحقق منه.');
+  buttons.append(verify,restore,refresh);
+  panel.append(heading,email,textNode,state,buttons,note);
+  const main=document.querySelector('main');if(main)document.body.insertBefore(panel,main);else document.body.prepend(panel);
+  refreshNewManagerSetup();
+ }
+
  function cloudBar(){
   const bar=item('div',undefined,'rawaa-cloud-bar');bar.id='cloud-control-bar';
   const h=item('strong','RAWAA | السحابة');status=item('span','✓ تم تحميل الحساب');
@@ -424,7 +465,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    }catch(e){statusMsg('تعذّر إنشاء النسخة: '+safe(e.message),true);}
   };
   const restore=item('button','استعادة نسخة احتياطية');restore.type='button';
-  const restoreInput=item('input');restoreInput.type='file';restoreInput.accept='.json,application/json';restoreInput.hidden=true;
+  const restoreInput=item('input');restoreInput.type='file';restoreInput.id='cloud-restore-file-input';restoreInput.accept='.json,application/json';restoreInput.hidden=true;
   restore.onclick=()=>restoreInput.click();
   restoreInput.onchange=async()=>{
    const file=restoreInput.files?.[0];restoreInput.value='';if(!file)return;
@@ -436,6 +477,8 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
     if(hasUnsubmittedForm)throw Error('هناك مسودة نموذج لم تُحفظ. احفظها أو ألغِها أولًا.');
     const transfer=expectedTransfer();
     const completingTransfer=!!transfer&&transfer.email===String(user?.email||'').toLowerCase();
+    if(isNewEmptyWorkspace&&!user?.emailVerified)
+     throw Error('يجب تأكيد Gmail الخاص بحساب RAWAA الجديد قبل استعادة الموظفين. استخدم لوحة «إكمال إعداد حساب RAWAA الجديد».');
     const fileHash=await snapshotFingerprint(data);
     if(completingTransfer){
      if(!user.emailVerified)throw Error('قبل نقل السجلات، افتح «تأكيد Gmail · إعدادات الأمان» وأكّد ملكية البريد الجديد أولًا.');
@@ -444,6 +487,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
     const promptText='ستحل السجلات التالية محل السجلات الحالية لهذا الحساب فقط:\n'+transferSummary(data)+
       '\nتأكد من أنك لا تستبدل بيانات أحدث. يحتفظ الحساب القديم بصلاحياته بعد النقل. هل أنت متأكد؟';
     if(!confirm(promptText))return;
+    if(isNewEmptyWorkspace&&!completingTransfer&&!confirm('هذه مساحة جديدة، ولم تُحفظ معلومات النقل من الحساب القديم داخل هذا التبويب. هل أنت متأكد أن ملف النسخة يخص مطعم RAWAA وأنه محفوظ لديك؟'))return;
     await queue;if(stopped)throw Error('توقفت المزامنة.');
     await checkServerVersion();
     const expectedRevision=rev+1;
@@ -462,6 +506,11 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
      }));
      sessionStorage.removeItem('rawaa_manager_transfer_expected');
      sessionStorage.removeItem('rawaa_manager_transfer_created');
+    }else if(isNewEmptyWorkspace){
+     sessionStorage.setItem('rawaa_manager_restore_verified',JSON.stringify({
+      email:String(user.email||'').toLowerCase(),
+      revision:expectedRevision,fingerprint:fileHash,verifiedAt:new Date().toISOString()
+     }));
     }
     location.reload();
    }catch(e){warn('تعذرت الاستعادة: '+safe(e.message));}
@@ -476,7 +525,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
  }
  function style(){
-  const s=item('style');s.textContent='.rawaa-cloud-overlay{position:fixed;inset:0;z-index:999999;background:#082e28;display:flex;align-items:safe center;justify-content:center;overflow-x:hidden;overflow-y:auto;padding:16px;direction:rtl;width:100%;max-width:100vw;box-sizing:border-box}.rawaa-cloud-dialog{background:#fff;color:#103b30;max-width:470px;width:100%;min-width:0;box-sizing:border-box;padding:clamp(14px,4vw,24px);border-radius:17px;box-shadow:0 18px 70px #0004;overflow-wrap:anywhere}.rawaa-cloud-dialog h2{margin:0 0 10px}.rawaa-cloud-dialog input:not([type="checkbox"]):not([type="file"]){display:block;width:100%;min-width:0;box-sizing:border-box;min-height:45px;margin:6px 0 13px;padding:8px;border-radius:8px;border:1px solid #aec9b7;font:inherit;font-size:max(16px,1em)}.rawaa-cloud-dialog input[type="checkbox"]{display:inline-block;appearance:auto;width:21px;height:21px;min-width:21px;min-height:21px;margin:0;padding:0;vertical-align:middle;flex-shrink:0;accent-color:#103e34}.rawaa-cloud-dialog .rawaa-confirm-line{display:flex;align-items:center;gap:10px;line-height:1.7;padding:12px 4px;overflow-wrap:anywhere}.rawaa-cloud-dialog .rawaa-confirm-line:has(input:disabled){opacity:.6}.rawaa-cloud-dialog #cloud-manager-step-info{border-inline-start:3px solid #ca9b51;padding:9px 12px;background:#f5f7f0;margin:12px 0}.rawaa-cloud-dialog #cloud-manager-export,.rawaa-cloud-dialog #cloud-manager-existing-file,.rawaa-cloud-dialog #cloud-manager-retry-cloud,.rawaa-cloud-dialog #cloud-manager-proceed{width:100%;margin:7px 0;line-height:1.6;white-space:normal;min-height:48px}.rawaa-cloud-dialog #cloud-manager-new-email{direction:ltr;text-align:left}.rawaa-cloud-dialog label{display:block;font-weight:650;font-size:13px}.rawaa-cloud-dialog button{min-height:44px;margin:5px 5px 5px 0;padding:8px 14px;border-radius:9px;color:#fff;background:#103e34;border:0;font:inherit;font-weight:bold;cursor:pointer}.rawaa-cloud-dialog button[disabled]{opacity:.55}.rawaa-cloud-dialog p{font-size:13px;color:#65776d}.rawaa-cloud-bar{max-width:1050px;margin:12px auto;padding:12px 15px;background:#eaf4ef;border:1px solid #a1cabb;border-radius:13px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;direction:rtl}.rawaa-cloud-bar span{flex:1 1 260px;font-weight:bold;font-size:13px}.rawaa-cloud-actions{display:flex;gap:7px;flex-wrap:wrap}.rawaa-cloud-actions button{padding:9px 12px;min-height:43px;border:1px solid #2a664d;background:#fff;color:#15513c;font:inherit;font-weight:700;border-radius:8px;cursor:pointer}@media(max-width:520px){.rawaa-cloud-actions{width:100%}.rawaa-cloud-actions button{flex:1 1 40%}}';document.head.append(s);
+  const s=item('style');s.textContent='.rawaa-cloud-overlay{position:fixed;inset:0;z-index:999999;background:#082e28;display:flex;align-items:safe center;justify-content:center;overflow-x:hidden;overflow-y:auto;padding:16px;direction:rtl;width:100%;max-width:100vw;box-sizing:border-box}.rawaa-cloud-dialog{background:#fff;color:#103b30;max-width:470px;width:100%;min-width:0;box-sizing:border-box;padding:clamp(14px,4vw,24px);border-radius:17px;box-shadow:0 18px 70px #0004;overflow-wrap:anywhere}.rawaa-cloud-dialog h2{margin:0 0 10px}.rawaa-cloud-dialog input:not([type="checkbox"]):not([type="file"]){display:block;width:100%;min-width:0;box-sizing:border-box;min-height:45px;margin:6px 0 13px;padding:8px;border-radius:8px;border:1px solid #aec9b7;font:inherit;font-size:max(16px,1em)}.rawaa-cloud-dialog input[type="checkbox"]{display:inline-block;appearance:auto;width:21px;height:21px;min-width:21px;min-height:21px;margin:0;padding:0;vertical-align:middle;flex-shrink:0;accent-color:#103e34}.rawaa-cloud-dialog .rawaa-confirm-line{display:flex;align-items:center;gap:10px;line-height:1.7;padding:12px 4px;overflow-wrap:anywhere}.rawaa-cloud-dialog .rawaa-confirm-line:has(input:disabled){opacity:.6}.rawaa-cloud-dialog #cloud-manager-step-info{border-inline-start:3px solid #ca9b51;padding:9px 12px;background:#f5f7f0;margin:12px 0}.rawaa-cloud-dialog #cloud-manager-export,.rawaa-cloud-dialog #cloud-manager-existing-file,.rawaa-cloud-dialog #cloud-manager-retry-cloud,.rawaa-cloud-dialog #cloud-manager-proceed{width:100%;margin:7px 0;line-height:1.6;white-space:normal;min-height:48px}.rawaa-cloud-dialog #cloud-manager-new-email{direction:ltr;text-align:left}.rawaa-cloud-dialog label{display:block;font-weight:650;font-size:13px}.rawaa-cloud-dialog button{min-height:44px;margin:5px 5px 5px 0;padding:8px 14px;border-radius:9px;color:#fff;background:#103e34;border:0;font:inherit;font-weight:bold;cursor:pointer}.rawaa-cloud-dialog button[disabled]{opacity:.55}.rawaa-cloud-dialog p{font-size:13px;color:#65776d}.rawaa-cloud-bar{max-width:1050px;margin:12px auto;padding:12px 15px;background:#eaf4ef;border:1px solid #a1cabb;border-radius:13px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;direction:rtl}.rawaa-cloud-bar span{flex:1 1 260px;font-weight:bold;font-size:13px}.rawaa-cloud-actions{display:flex;gap:7px;flex-wrap:wrap}.rawaa-cloud-setup{display:block;max-width:1050px;box-sizing:border-box}.rawaa-cloud-setup h3{font-size:1.15rem;margin:0 0 12px;color:#103e34}.rawaa-cloud-setup p{width:100%;margin:7px 0;line-height:1.75;overflow-wrap:anywhere}.rawaa-cloud-setup button:disabled{opacity:.5;cursor:not-allowed}.rawaa-cloud-actions button{padding:9px 12px;min-height:43px;border:1px solid #2a664d;background:#fff;color:#15513c;font:inherit;font-weight:700;border-radius:8px;cursor:pointer}@media(max-width:520px){.rawaa-cloud-actions{width:100%}.rawaa-cloud-actions button{flex:1 1 40%}}';document.head.append(s);
  }
  async function login(){
   const overlay=item('div',undefined,'rawaa-cloud-overlay');overlay.id='cloud-login';
@@ -534,16 +583,11 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
  }
  async function activate(){
   try{
-   const row=await initialRow();rev=Number(row.revision);localStorage._load(check(row.payload));
+   const row=await initialRow();rev=Number(row.revision);
+   isNewEmptyWorkspace=rev===0&&Object.keys(check(row.payload)).length===0;
+   localStorage._load(check(row.payload));
    cloudBar();await loadExistingScripts();
-   let justTransferred='';
-   try{justTransferred=sessionStorage.getItem('rawaa_manager_transfer_created')||'';}catch(_){}
-   if(justTransferred===String(user.email||'').toLowerCase()){
-    const reminder=item('div',undefined,'rawaa-cloud-bar');reminder.id='cloud-new-manager-reminder';
-    const message=item('strong','تم إنشاء الحساب الجديد. قبل اعتماد هذا Gmail مديرًا فعليًا: اضغط «تأكيد Gmail · إعدادات الأمان»، ثم «استعادة نسخة احتياطية» واختر الملف المشفّر الذي نزّلته من الحساب القديم. بعد التأكد من جميع سجلات الرواتب، اطلب إيقاف وصول الحساب القديم. لا تنسَ كلمة مرور النسخة.');
-    const done=item('button','فهمت');done.type='button';done.onclick=()=>{sessionStorage.removeItem('rawaa_manager_transfer_created');reminder.remove();};
-    reminder.append(message,done);const main=document.querySelector('main');if(main)document.body.insertBefore(reminder,main);else document.body.prepend(reminder);
-   }
+   if(isNewEmptyWorkspace)showNewManagerSetup();
    // The legacy public-demo backup exports employee data as plaintext JSON.
    // The cloud workspace exposes only its AES-GCM encrypted backup controls.
    const legacyBackup=$('fin-backup');
@@ -557,6 +601,17 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
      const success=item('strong','✓ تمت مراجعة النسخة المستعادة وقراءة البيانات نفسها من الخادم (الإصدار '+checked.targetRevision+'). بيانات RAWAA مرتبطة الآن بهذا الحساب. ما زال المدير القديم يحتفظ بإمكانية الدخول إلى سجلاته السابقة؛ لا تعتبر سحب صلاحياته مكتملًا.');
      const dismiss=item('button','إخفاء التنبيه');dismiss.type='button';dismiss.onclick=()=>{sessionStorage.removeItem('rawaa_manager_transfer_restored');panel.remove();};
      panel.append(success,dismiss);const main=document.querySelector('main');if(main)document.body.insertBefore(panel,main);else document.body.prepend(panel);
+    }
+   }catch(_){}
+   try{
+    const info=JSON.parse(sessionStorage.getItem('rawaa_manager_restore_verified')||'null');
+    if(info&&info.email===String(user.email||'').toLowerCase()&&user.emailVerified===true&&
+       Number(info.revision)===rev&&await snapshotFingerprint(row.payload)===info.fingerprint){
+     const banner=item('div',undefined,'rawaa-cloud-bar');banner.id='cloud-restoration-verified';
+     const summary=item('strong','✓ تم تأكيد Gmail واستعادة النسخة المشفّرة، والتحقق من تطابق السجلات على خادم RAWAA. راجع الموظفين والدوام والرواتب. ما زال الحساب القديم يحتفظ بصلاحياته حتى إيقافه بشكل مستقل.');
+     const done=item('button','فهمت');done.type='button';done.onclick=()=>{sessionStorage.removeItem('rawaa_manager_restore_verified');banner.remove();};
+     banner.append(summary,done);
+     const main=document.querySelector('main');if(main)document.body.insertBefore(banner,main);else document.body.prepend(banner);
     }
    }catch(_){}
    storedRev=localRev=0;loggedIn=true;

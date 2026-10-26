@@ -64,6 +64,11 @@ const server=http.createServer((req,res)=>{try{
   await page.getByRole('button',{name:'إنشاء حساب لأول مرة'}).click();
   await page.locator('#staff-manage-cards .staff-manage-card').first().waitFor({timeout:16000});
   assert.equal(await page.getByRole('button',{name:'استعادة نسخة احتياطية'}).count(),1,'restore action available');
+  // Even when the original transfer was opened in a different Safari tab,
+  // a new and empty manager workspace must show its setup checklist.
+  assert.equal(await page.locator('#cloud-manager-setup').count(),1,'empty workspace shows onboarding guidance');
+  assert.match(await page.locator('#cloud-manager-setup').innerText(),/مساحة عمل فارغة|بيانات الموظفين/);
+  assert.equal(await page.locator('#cloud-manager-setup-restore').isDisabled(),true,'no employee import before email verification');
   assert.equal(await page.locator('#fin-backup').isHidden(),true,'legacy unencrypted backup must be unavailable in cloud workspace');
   // Manager transfer cannot proceed without an encrypted backup and owner acknowledgment.
   await page.locator('#cloud-manager-change-button').click();
@@ -91,6 +96,7 @@ const server=http.createServer((req,res)=>{try{
   await page.locator('#cloud-verify-email-form button').click();
   await page.locator('#cloud-email-verified-status').getByText('✓ تم تأكيد Gmail بنجاح.').waitFor();
   assert.equal(await page.evaluate(()=>window.localStorage.getItem('neon_mock_email_verified')),'yes');
+  assert.equal(await page.locator('#cloud-manager-setup-restore').isEnabled(),true,'successful OTP unlocks guided import without reload');
   await page.locator('#cloud-account-security').getByRole('button',{name:'إغلاق'}).click();
   await page.locator('#staff-manage-cards [data-rename-staff="001"]').click();
   await page.locator('.staff-inline-rename input').fill('مشرف السحابة');
