@@ -15,7 +15,7 @@ const PUBLIC_ORIGIN=process.env.RAWAA_PUBLIC_ORIGIN||'';
 const port=Number(process.env.PORT||3000);
 const files=new Set(['cloud.html','index.html','work.html','cloud-sync.js','staff.js','staff.css','daily-batch.js','weekly-report.js','work-vault.js','service-worker.js','manifest.webmanifest','icon.svg']);
 const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
-const AUTH_PATHS=new Set(['/get-session','/sign-in/email','/sign-up/email','/sign-out','/forget-password','/reset-password','/send-verification-email','/verify-email']);
+const AUTH_PATHS=new Set(['/get-session','/sign-in/email','/sign-up/email','/sign-out','/forget-password','/reset-password','/send-verification-email','/verify-email','/email-otp/send-verification-otp','/email-otp/verify-email']);
 const getUrl=(x)=>{try{const u=new URL(x);return u.protocol==='https:'?u:null;}catch{return null;}};
 function bad(res,status,message){res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify({error:message}));}
 function secure(res){res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');res.setHeader('Cache-Control','no-store');res.setHeader('Permissions-Policy','camera=(),microphone=(),geolocation=()');}
@@ -59,6 +59,9 @@ function makeHandler(options={}){
       if(!['GET','POST','PATCH'].includes(req.method))return bad(res,405,'طريقة الطلب غير مدعومة.');
       const endpoint=pathname.slice(auth?'/auth'.length:'/data'.length);
       if(auth&&!AUTH_PATHS.has(endpoint))return bad(res,404,'مسار الدخول غير متاح.');
+      // Verification codes can only be requested from an existing signed-in
+      // first-party manager session, not anonymous visitors to the website.
+      if(auth&&endpoint.startsWith('/email-otp/')&&!String(req.headers.cookie||'').includes('__Secure-neonauth.session_token='))return bad(res,401,'سجّل الدخول بحساب المدير قبل تأكيد البريد.');
       if(data&&endpoint!=='/rawaa_cloud_workspace_v1')return bad(res,403,'هذا المورد غير متاح.');
       // Cookies are used only for Neon Auth. Neon Data API receives an access
       // token and enforces owner_id=user ID via RLS.
