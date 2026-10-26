@@ -72,6 +72,17 @@ const {makeHandler,cleanCookie}=require('../server');
    assert.equal(requests[5].url,'https://auth.example/neondb/auth/email-otp/send-verification-otp');
    assert.equal(requests[6].url,'https://auth.example/neondb/auth/get-session');
    assert.equal(requests[7].url,'https://auth.example/neondb/auth/email-otp/verify-email');
+   // Safari/Better Auth may use a different cookie name after SDK upgrades.
+   // Match the real upstream session, never a string-literal cookie name.
+   const alternateCookie='better-auth.session_token=local-test-session';
+   const alternate=await fetch(base+'/auth/email-otp/send-verification-otp',{
+     method:'POST',headers:{'Content-Type':'application/json',Cookie:alternateCookie},
+     body:JSON.stringify({email:'test@example.com',type:'email-verification'})
+   });
+   assert.equal(alternate.status,200,'valid upstream session works with non-Neon cookie name');
+   assert.equal(requests[8].url,'https://auth.example/neondb/auth/get-session');
+   assert.equal(requests[8].cookie,alternateCookie);
+   assert.equal(requests[9].url,'https://auth.example/neondb/auth/email-otp/send-verification-otp');
    const unauthorized=await fetch(base+'/data/rawaa_cloud_workspace_v1');
    assert.equal(unauthorized.status,401);
    const forbidden=await fetch(base+'/data/neon_auth.user',{headers:{authorization:'Bearer '+'x'.repeat(40)}});
@@ -79,8 +90,8 @@ const {makeHandler,cleanCookie}=require('../server');
    const jwt='sample.abcdef.signature-'+ 'x'.repeat(35);
    const authorized=await fetch(base+'/data/rawaa_cloud_workspace_v1?select=revision',{headers:{authorization:'Bearer '+jwt}});
    assert.equal(authorized.status,200);
-   assert.equal(requests[8].url,'https://data.example/neondb/rest/v1/rawaa_cloud_workspace_v1?select=revision');
-   assert.equal(requests[8].authorization,'Bearer '+jwt);
+   assert.equal(requests[10].url,'https://data.example/neondb/rest/v1/rawaa_cloud_workspace_v1?select=revision');
+   assert.equal(requests[10].authorization,'Bearer '+jwt);
    const html=await fetch(base+'/cloud.html');assert.equal(html.status,200);
    assert.ok((await html.text()).includes('window.RAWAA_FIRST_PARTY_AUTH=true'));
    const health=await fetch(base+'/health');const healthInfo=await health.json();
