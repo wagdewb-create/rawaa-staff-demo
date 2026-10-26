@@ -63,7 +63,9 @@ function makeHandler(options={}){
       if(auth&&!AUTH_PATHS.has(endpoint))return bad(res,404,'مسار الدخول غير متاح.');
       // Verification codes must be tied to a real signed-in Neon user,
       // not merely a client-supplied cookie string or different email.
-      if(auth&&OTP_PATHS.has(endpoint)&&!String(req.headers.cookie||'').includes('__Secure-neonauth.session_token='))return bad(res,401,'سجّل الدخول بحساب المدير قبل تأكيد البريد.');
+      // Do not require one hard-coded session cookie name: Neon Auth may
+      // emit a different Better Auth cookie name/version on Safari.
+      // Authenticate the user through upstream /get-session below instead.
       if(data&&endpoint!=='/rawaa_cloud_workspace_v1')return bad(res,403,'هذا المورد غير متاح.');
       // Cookies are used only for Neon Auth. Neon Data API receives an access
       // token and enforces owner_id=user ID via RLS.
@@ -93,12 +95,15 @@ function makeHandler(options={}){
         let session;
         try{
           const sessionUrl=new URL(authBase.toString().replace(/\/$/,'')+'/get-session');
+          const sessionHeaders={Accept:'application/json'};
+          if(req.headers.cookie)sessionHeaders.Cookie=req.headers.cookie;
+          if(req.headers['user-agent'])sessionHeaders['User-Agent']=req.headers['user-agent'];
+          if(req.headers.origin&&(!allowedOrigin||req.headers.origin===allowedOrigin))sessionHeaders.Origin=req.headers.origin;
           const verify=await upstreamFetch(sessionUrl.toString(),{
-            method:'GET',headers:{Accept:'application/json',Cookie:String(req.headers.cookie||''),
-              'User-Agent':String(req.headers['user-agent']||'RAWAA')},
-            redirect:'manual',signal:AbortSignal.timeout(10000)
+            method:'GET',headers:sessionHeaders,redirect:'manual',
+            signal:AbortSignal.timeout(10000)
           });
-          if(!verify.ok)return bad(res,401,'انتهت جلسة الدخول. سجّل الدخول مجددًا قبل تأكيد البريد.');
+          if(!verify.ok)return bad(res,401,'انتهت جلسة الدخول في RAWAA. أعد تحميل الصفحة ثم جرّب إرسال الرمز مرة أخرى.');
           session=await verify.json();
         }catch{return bad(res,503,'تعذر التحقق من جلسة المدير حاليًا. أعد المحاولة عند استقرار الإنترنت.');}
         const signedInEmail=String(session?.user?.email||'').trim().toLowerCase();
