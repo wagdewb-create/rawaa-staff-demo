@@ -1,7 +1,7 @@
 /* Test multi-device cloud bridge with a deterministic fake Neon client, then
    check live Neon SDK module loads. node tests/cloud-browser.cjs */
 const assert=require('node:assert/strict');
-const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..');
 const mime={'.html':'text/html;charset=utf-8','.js':'application/javascript;charset=utf-8','.css':'text/css;charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
@@ -124,7 +124,55 @@ const server=http.createServer((req,res)=>{try{
   assert.match(await page.locator('#cloud-sync-lock').innerText(),/نسخة طوارئ|مسودة/);
   assert.equal(await page.locator('.staff-inline-rename input').inputValue(),'مسودة غير محفوظة على الهاتف','unfinished draft must not disappear');
   assert.equal(await page.locator('#cloud-sync-lock button').filter({hasText:'إعادة المحاولة'}).isHidden(),true,'retry must not suggest merging conflicting writes');
+
+  // A successful handover must be based on the exact encrypted backup:
+  // accidental changes after export cannot be silently carried forward.
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#staff-manage-cards .staff-manage-card').first().waitFor({timeout:15000});
+  await page.locator('#cloud-manager-change-button').click();
+  await page.locator('#cloud-manager-new-email').fill('next-owner@gmail.com');
+  const [transferDownload]=await Promise.all([
+   page.waitForEvent('download',{timeout:16000}),
+   page.locator('#cloud-manager-export').click()
+  ]);
+  assert.ok(transferDownload.suggestedFilename().endsWith('.json'),'transfer exports JSON');
+  await page.locator('#cloud-manager-file-saved').check();
+  assert.equal(await page.locator('#cloud-manager-proceed').isEnabled(),true,'handover enabled only with fresh encrypted export');
+  await page.evaluate(()=>window.RAWAA_CLOUD_STORAGE.setItem('RAWAA_TRANSFER_TEST','changed after export'));
+  await page.locator('#cloud-manager-proceed').click();
+  assert.match(await page.locator('#cloud-manager-message').innerText(),/تغيّرت البيانات|نسخة مشفّرة|بيانات/);
+  assert.equal(await page.locator('#cloud-login').count(),0,'stale transfer must never log the owner out');
+  await page.locator('#cloud-manager-transfer').getByRole('button',{name:'إلغاء'}).click();
+  await page.waitForFunction(()=>document.querySelector('#cloud-control-bar span')?.textContent?.includes('متزامن'),null,{timeout:16000});
+
+  // Prove that a wrong transfer file is refused and that a matching
+  // encrypted file is verified by reading back the server's new revision.
+  const vault=backup.vault,ciphertext=Buffer.from(vault.ciphertext,'base64');
+  const key=crypto.pbkdf2Sync('RAWAA-backup-passphrase-2026',Buffer.from(vault.salt,'base64'),310000,32,'sha256');
+  const decipher=crypto.createDecipheriv('aes-256-gcm',key,Buffer.from(vault.iv,'base64'));
+  decipher.setAuthTag(ciphertext.subarray(-16));
+  const decoded=JSON.parse(Buffer.concat([decipher.update(ciphertext.subarray(0,-16)),decipher.final()]).toString('utf8'));
+  const normalized=JSON.stringify(Object.keys(decoded.entries).sort().map(k=>[k,decoded.entries[k]]));
+  const correctFingerprint=crypto.createHash('sha256').update(normalized).digest('hex');
+  const rowBeforeRestore=JSON.parse(await page.evaluate(()=>window.localStorage.getItem('neon_mock_row')));
+
+  await page.evaluate(()=>sessionStorage.setItem('rawaa_manager_transfer_expected',JSON.stringify({
+    email:'tester@example.com',fingerprint:'0'.repeat(64),sourceRevision:1
+  })));
+  const upload=page.locator('#cloud-control-bar input[type="file"]');
+  await upload.setInputFiles(await backupDownload.path());
+  await page.waitForFunction(()=>document.querySelector('#cloud-control-bar span')?.textContent?.includes('لا يطابق'),null,{timeout:16000});
+  assert.equal(JSON.parse(await page.evaluate(()=>window.localStorage.getItem('neon_mock_row'))).revision,rowBeforeRestore.revision,'wrong backup must never replace cloud');
+  await page.evaluate(hash=>sessionStorage.setItem('rawaa_manager_transfer_expected',JSON.stringify({
+    email:'tester@example.com',fingerprint:hash,sourceRevision:1
+  })),correctFingerprint);
+  await upload.setInputFiles(await backupDownload.path());
+  await page.locator('#cloud-transfer-verified').waitFor({timeout:18000});
+  const restored=JSON.parse(await page.evaluate(()=>window.localStorage.getItem('neon_mock_row')));
+  assert.equal(restored.revision,rowBeforeRestore.revision+1,'successful transfer advances server version');
+  assert.deepEqual(restored.payload,decoded.entries,'new manager cloud data must exactly match encrypted export');
+  assert.match(await page.locator('#cloud-transfer-verified').innerText(),/المدير القديم|سحب صلاحيات|إمكانية الدخول/);
   assert.deepEqual(errors,[],errors.join('; '));assert.deepEqual(secondErrors,[],secondErrors.join('; '));
-  console.log('PASS: cloud login, AES backup, multi-device safe auto-refresh and preservation of an unsaved draft');
+  console.log('PASS: account, OTP, safe multi-device cloud, encrypted backup, stale transfer protection, mismatch refusal and verified read-back');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
