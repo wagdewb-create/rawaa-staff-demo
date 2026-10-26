@@ -50,7 +50,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('#work-login-overlay input[type="password"]').count(),1,'existing workspace should ask for a password');
   await page.locator('#work-login-overlay input[type="password"]').fill(password);
   await page.getByRole('button',{name:'فتح السجلات'}).click();
-  await page.getByText('موظف اختبار المشفر',{exact:true}).first().waitFor({timeout:30000});
+  await page.locator('#staff-manage-cards .staff-manage-card strong').filter({hasText:'موظف اختبار المشفر'}).first().waitFor({timeout:30000});
   assert.deepEqual(errors,[], 'browser errors should be empty: '+errors.join('; '));
   console.log('PASS: work gate, first-time password, existing app startup, staff rename, AES-GCM at rest, reload unlock');
  }finally{await browser.close();}
