@@ -237,6 +237,10 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   try{
    const row=await initialRow();rev=Number(row.revision);localStorage._load(check(row.payload));
    cloudBar();await loadExistingScripts();
+   // The legacy public-demo backup exports employee data as plaintext JSON.
+   // The cloud workspace exposes only its AES-GCM encrypted backup controls.
+   const legacyBackup=$('fin-backup');
+   if(legacyBackup){const legacyCard=legacyBackup.closest('.card');if(legacyCard)legacyCard.hidden=true;}
    storedRev=localRev=0;loggedIn=true;
    localStorage._observe(schedule);
    statusMsg('✓ متصل بالسحابة؛ البيانات متاحة على الأجهزة المتصلة بالحساب');
