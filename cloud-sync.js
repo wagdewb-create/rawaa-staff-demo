@@ -281,7 +281,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const oldEmail=item('p','حساب المدير الحالي: '+String(user?.email||''));
   const emailLabel=item('label','عنوان Gmail الجديد الذي تملكه');
   const target=item('input');target.type='email';target.autocomplete='off';target.required=true;target.placeholder='example@gmail.com';target.id='cloud-manager-new-email';emailLabel.append(target);
-  const notes=item('p','1) أنشئ نسخة مشفّرة أو افحص الملف الذي نزّلته بالفعل. 2) احفظ الملف وكلمة مروره. 3) تحقق من اتصال السحابة ثم أكّد الحفظ. 4) أنشئ الحساب الجديد، أكّد البريد، واستعد نفس الملف. لن يُلغى وصول المدير القديم تلقائيًا.');
+  const notes=item('p','1) أنشئ نسخة مشفّرة أو افحص الملف الذي نزّلته بالفعل. 2) احفظ الملف وكلمة مروره. 3) تحقق من اتصال السحابة ثم أكّد الحفظ. 4) سجّل الدخول بحساب Gmail الجديد الموجود بالفعل في RAWAA، أكّد البريد، واستعد نفس الملف. لا تفتح حسابًا ثالثًا. لن يُلغى وصول المدير القديم تلقائيًا.');
   const backup=item('button','1 · تنزيل نسخة مشفّرة قبل الانتقال');backup.type='button';backup.id='cloud-manager-export';
   const existing=item('button','لدي النسخة بالفعل · التحقق من الملف');existing.type='button';existing.id='cloud-manager-existing-file';
   const fileInput=item('input');fileInput.type='file';fileInput.id='cloud-manager-existing-input';fileInput.accept='.json,application/json';fileInput.hidden=true;
@@ -291,7 +291,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const confirmSaved=item('label');confirmSaved.className='rawaa-confirm-line';
   const saved=item('input');saved.type='checkbox';saved.id='cloud-manager-file-saved';saved.disabled=true;
   confirmSaved.append(saved,document.createTextNode(' تحققت من وجود ملف النسخة المشفّرة على جهازي وأعرف كلمة مرورها.'));
-  const go=item('button','2 · تسجيل الخروج لإنشاء حساب المدير الجديد');go.type='button';go.id='cloud-manager-proceed';go.disabled=true;
+  const go=item('button','2 · تسجيل الخروج والدخول بحساب المدير الجديد');go.type='button';go.id='cloud-manager-proceed';go.disabled=true;
   const message=item('p');message.id='cloud-manager-message';message.setAttribute('role','status');
   const close=item('button','إلغاء');close.type='button';close.onclick=()=>overlay.remove();
   let downloaded=false,serverConfirmed=false,exportRevision=-1,exportLocalRevision=-1,exportFingerprint='';
@@ -543,16 +543,28 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const submit=item('button','تسجيل الدخول'),create=item('button','إنشاء حساب لأول مرة');submit.type='submit';create.type='button';
   let transferTarget='';
   try{transferTarget=window.RAWAA_FIRST_PARTY_AUTH?(sessionStorage.getItem('rawaa_manager_transfer_target')||''):'';}catch(_){}
-  if(window.RAWAA_FIRST_PARTY_AUTH&&!transferTarget){
+  if(window.RAWAA_FIRST_PARTY_AUTH){
+   // Existing Neon users continue signing in; new signups are closed at the
+   // first-party gateway and must never be offered as a working button.
    create.hidden=true;create.disabled=true;
-   subtitle.textContent='استخدم حساب المدير المسجّل. لن يظهر إنشاء حساب جديد إلا بعد تجهيز نسخة مشفّرة وبدء نقل المدير من داخل الحساب القديم.';
-  }else if(window.RAWAA_FIRST_PARTY_AUTH&&transferTarget){
-   email.value=transferTarget;email.readOnly=true;
-   create.textContent='إنشاء حساب المدير الجديد بهذا Gmail';
-   subtitle.textContent='أنت في خطوة إنشاء حساب RAWAA للبريد الجديد. استخدم كلمة مرور قوية جديدة خاصة بالتطبيق (وليست كلمة مرور Google). السجلات القديمة لا تُنقل تلقائيًا؛ ستستعيدها من ملف النسخة المشفّرة.';
+   if(transferTarget){
+    email.value=transferTarget;email.readOnly=true;
+    subtitle.textContent='تم تسجيل حساب Gmail الجديد في RAWAA مسبقًا. سجّل الدخول بكلمة مرور RAWAA الخاصة بهذا الحساب، ثم أكّد البريد واستعد النسخة المشفّرة. لا تنشئ حسابًا ثالثًا.';
+   }else{
+    subtitle.textContent='سجّل الدخول بأحد حسابَي RAWAA الحاليين. أُغلق إنشاء حسابات جديدة من الرابط الآمن لحماية الموظفين والرواتب.';
+   }
   }
-  form.append(emailLabel,passLabel,submit,create,message);box.append(title,subtitle,form,item('p','لا تشارك كلمة مرور المدير مع موظفين آخرين. إذا لم تتمكن من تسجيل الدخول، لا تنشئ حسابًا آخر بالبريد نفسه.'));overlay.append(box);document.body.append(overlay);
+  const switchAccount=item('button','استخدام بريد حساب آخر');switchAccount.type='button';switchAccount.id='cloud-login-switch-account';
+  switchAccount.hidden=!transferTarget;
+  switchAccount.onclick=()=>{
+   transferTarget='';
+   try{sessionStorage.removeItem('rawaa_manager_transfer_target');}catch(_){}
+   email.readOnly=false;email.value='';pass.value='';switchAccount.hidden=true;
+   subtitle.textContent='سجّل الدخول ببريد حساب RAWAA الموجود. تغيير الحساب لا يحذف البيانات أو يوقف صلاحيات المدير السابق.';
+  };
+  form.append(emailLabel,passLabel,submit,create,switchAccount,message);box.append(title,subtitle,form,item('p','لا تشارك كلمة مرور المدير مع موظفين آخرين. إذا لم تتمكن من تسجيل الدخول، لا تنشئ حسابًا آخر بالبريد نفسه.'));overlay.append(box);document.body.append(overlay);
   async function enter(signup){
+   if(signup&&window.RAWAA_FIRST_PARTY_AUTH){message.textContent='إنشاء الحسابات الجديدة مغلق في بوابة RAWAA الآمنة. استخدم حسابك المسجّل.';return;}
    if(!email.checkValidity()||!pass.checkValidity()){message.textContent='أدخل بريدًا وكلمة مرور صالحين.';return;}
    submit.disabled=create.disabled=true;message.textContent='جارٍ التحقق من حسابك...';
    try{
@@ -641,6 +653,12 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   }catch(e){warn('فشل تحميل حساب RAWAA: '+safe(e.message),true);}
  }
  async function start(){
+  // One production origin for Safari auth cookies. Avoid direct Neon Auth
+  // access from the retired public demo host, even with old cached markup.
+  if(location.hostname==='rawaa-staff-demo.onrender.com'){
+   location.replace('https://rawaa-staff-secure.onrender.com/cloud.html'+location.search+location.hash);
+   return;
+  }
   style();const intro=item('div',undefined,'rawaa-cloud-overlay');intro.id='cloud-loading';
   const box=item('div',undefined,'rawaa-cloud-dialog');box.append(item('h2','RAWAA Cloud'),item('p','جارٍ فتح الاتصال السحابي الآمن...'));intro.append(box);document.body.append(intro);
   try{
