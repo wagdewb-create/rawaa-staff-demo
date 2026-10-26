@@ -19,8 +19,8 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
 (()=>{
  'use strict';
  const SDK='https://esm.sh/@neondatabase/neon-js@0.9.0-beta?bundle';
- const AUTH='https://ep-red-wave-b9ap8bfz.neonauth.c-7.eu-central-1.aws.neon.tech/neondb/auth';
- const DATA='https://ep-red-wave-b9ap8bfz.apirest.c-7.eu-central-1.aws.neon.tech/neondb/rest/v1';
+ const AUTH=window.RAWAA_FIRST_PARTY_AUTH?location.origin+'/auth':'https://ep-red-wave-b9ap8bfz.neonauth.c-7.eu-central-1.aws.neon.tech/neondb/auth';
+ const DATA=window.RAWAA_FIRST_PARTY_AUTH?location.origin+'/data':'https://ep-red-wave-b9ap8bfz.apirest.c-7.eu-central-1.aws.neon.tech/neondb/rest/v1';
  const TABLE='rawaa_cloud_workspace_v1';
  const SELECT='owner_id,revision,payload,updated_at';
  let client=null,user=null,rev=0,queue=Promise.resolve(),localRev=0,storedRev=0,stopped=false,pulling=false,editingStarted=false;
@@ -218,14 +218,27 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   emailLabel.append(email);passLabel.append(pass);
   const message=item('p');message.setAttribute('role','status');
   const submit=item('button','تسجيل الدخول'),create=item('button','إنشاء حساب لأول مرة');submit.type='submit';create.type='button';
-  form.append(emailLabel,passLabel,submit,create,message);box.append(title,subtitle,form,item('p','حسابات البريد الأخرى تحصل على مساحة منفصلة. لا تشارك كلمة مرور المدير مع موظفين آخرين.'));overlay.append(box);document.body.append(overlay);
+  if(window.RAWAA_FIRST_PARTY_AUTH){
+   create.hidden=true;create.disabled=true;
+   subtitle.textContent='حساب مدير RAWAA مسجّل بالفعل. سجّل الدخول باستخدام بريده وكلمة مروره. هذه الصفحة لا تحتاج إلى إنشاء حساب جديد.';
+  }
+  form.append(emailLabel,passLabel,submit,create,message);box.append(title,subtitle,form,item('p','لا تشارك كلمة مرور المدير مع موظفين آخرين. إذا لم تتمكن من تسجيل الدخول، لا تنشئ حسابًا آخر بالبريد نفسه.'));overlay.append(box);document.body.append(overlay);
   async function enter(signup){
    if(!email.checkValidity()||!pass.checkValidity()){message.textContent='أدخل بريدًا وكلمة مرور صالحين.';return;}
    submit.disabled=create.disabled=true;message.textContent='جارٍ التحقق من حسابك...';
    try{
     let r=signup?await client.auth.signUp.email({name:'RAWAA Manager',email:email.value.trim(),password:pass.value}):await client.auth.signIn.email({email:email.value.trim(),password:pass.value});
     if(r.error)throw Error(r.error.message||'تعذر تسجيل الدخول');
-    const session=resultOrThrow(await client.auth.getSession());
+    // Some Safari versions do not expose a new session on the very next tick.
+    // Retry briefly; never misreport an account as unregistered or create it twice.
+    let session=null;
+    for(let attempt=0;attempt<4;attempt++){
+      const checkResult=await client.auth.getSession();
+      if(checkResult.error)throw Error(checkResult.error.message||'تعذر التحقق من جلسة الدخول.');
+      session=checkResult.data;
+      if(session?.user&&session?.session)break;
+      await new Promise(done=>setTimeout(done,350+attempt*300));
+    }
     if(!session?.user||!session?.session)throw Error('لم تصبح الجلسة نشطة. تحقق من البريد إذا طُلب التأكيد.');
     user=session.user;pass.value='';overlay.remove();await activate();
    }catch(e){message.textContent=safe(e.message);submit.disabled=create.disabled=false;}
