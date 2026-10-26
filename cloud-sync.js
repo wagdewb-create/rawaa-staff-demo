@@ -273,77 +273,138 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const oldEmail=item('p','حساب المدير الحالي: '+String(user?.email||''));
   const emailLabel=item('label','عنوان Gmail الجديد الذي تملكه');
   const target=item('input');target.type='email';target.autocomplete='off';target.required=true;target.placeholder='example@gmail.com';target.id='cloud-manager-new-email';emailLabel.append(target);
-  const notes=item('p','1) نزّل نسخة مشفّرة من السجلات الحالية واحفظها وكلمة مرورها. 2) افتح حساب RAWAA جديدًا بالبريد الذي تملكه وكلمة مرور RAWAA مستقلة عن Google. 3) أكّد البريد ثم استعد النسخة. 4) بعد اختبار البيانات وصلاحيات الحساب الجديد، يُلغى دخول الحساب القديم بإجراء مستقل.');
+  const notes=item('p','1) أنشئ نسخة مشفّرة أو افحص الملف الذي نزّلته بالفعل. 2) احفظ الملف وكلمة مروره. 3) تحقق من اتصال السحابة ثم أكّد الحفظ. 4) أنشئ الحساب الجديد، أكّد البريد، واستعد نفس الملف. لن يُلغى وصول المدير القديم تلقائيًا.');
   const backup=item('button','1 · تنزيل نسخة مشفّرة قبل الانتقال');backup.type='button';backup.id='cloud-manager-export';
-  const stepInfo=item('p','الخطوة 1 من 2: اضغط زر التنزيل أولًا، أنشئ كلمة مرور قوية للنسخة، ثم تحقّق من وجود ملف RAWAA_Manager_Transfer في تطبيق الملفات.');
+  const existing=item('button','لدي النسخة بالفعل · التحقق من الملف');existing.type='button';existing.id='cloud-manager-existing-file';
+  const fileInput=item('input');fileInput.type='file';fileInput.id='cloud-manager-existing-input';fileInput.accept='.json,application/json';fileInput.hidden=true;
+  const retry=item('button','إعادة فحص الاتصال دون تنزيل جديد');retry.type='button';retry.id='cloud-manager-retry-cloud';retry.hidden=true;retry.disabled=true;
+  const stepInfo=item('p','الخطوة 1 من 2: نزّل نسخة مشفّرة أو اختر النسخة الموجودة في تطبيق الملفات. كلمة مرور النسخة لا تُرسل إلى الخادم.');
   stepInfo.id='cloud-manager-step-info';
-  const confirmSaved=item('label');confirmSaved.className='rawaa-confirm-line';const saved=item('input');saved.type='checkbox';saved.id='cloud-manager-file-saved';saved.disabled=true;confirmSaved.append(saved,document.createTextNode(' تأكدت أن ملف النسخة المشفّرة موجود على جهازي وأنني أعرف كلمة مرورها.'));
-  const go=item('button','2 · تسجيل الخروج لإنشاء حساب المدير الجديد');go.type='button';go.disabled=true;go.id='cloud-manager-proceed';
+  const confirmSaved=item('label');confirmSaved.className='rawaa-confirm-line';
+  const saved=item('input');saved.type='checkbox';saved.id='cloud-manager-file-saved';saved.disabled=true;
+  confirmSaved.append(saved,document.createTextNode(' تحققت من وجود ملف النسخة المشفّرة على جهازي وأعرف كلمة مرورها.'));
+  const go=item('button','2 · تسجيل الخروج لإنشاء حساب المدير الجديد');go.type='button';go.id='cloud-manager-proceed';go.disabled=true;
   const message=item('p');message.id='cloud-manager-message';message.setAttribute('role','status');
   const close=item('button','إلغاء');close.type='button';close.onclick=()=>overlay.remove();
-  let downloaded=false,exportRevision=-1,exportLocalRevision=-1,exportFingerprint='';
+  let downloaded=false,serverConfirmed=false,exportRevision=-1,exportLocalRevision=-1,exportFingerprint='';
+  const validEmail=()=>/^[^\s@]+@gmail\.com$/i.test(target.value.trim())&&target.value.trim().toLowerCase()!==String(user?.email||'').toLowerCase();
   const validate=()=>{
-   const ok=/^[^\s@]+@gmail\.com$/i.test(target.value.trim())&&target.value.trim().toLowerCase()!==String(user?.email||'').toLowerCase();
-   go.disabled=!(downloaded&&saved.checked&&ok&&rev===exportRevision&&localRev===exportLocalRevision&&!hasUnsubmittedForm);
-   return ok;
+   const current=rev===exportRevision&&localRev===exportLocalRevision&&!hasUnsubmittedForm&&!stopped;
+   const allowed=downloaded&&serverConfirmed&&saved.checked&&validEmail()&&current;
+   go.disabled=!allowed;return validEmail();
   };
-  target.oninput=()=>{
-   downloaded=false;exportRevision=-1;exportLocalRevision=-1;exportFingerprint='';
-   saved.disabled=true;saved.checked=false;
-   stepInfo.textContent='الخطوة 1 من 2: نزّل نسخة مشفّرة من السجلات الحالية بعد اختيار Gmail الصحيح.';
+  const clearPrepared=()=>{
+   downloaded=false;serverConfirmed=false;exportRevision=-1;exportLocalRevision=-1;exportFingerprint='';
+   saved.checked=false;saved.disabled=true;retry.hidden=true;retry.disabled=true;validate();
+  };
+  const prepareFile=(fingerprint,revision,localRevision,source)=>{
+   downloaded=true;serverConfirmed=false;
+   exportRevision=revision;exportLocalRevision=localRevision;exportFingerprint=fingerprint;
+   saved.disabled=false;saved.checked=false;retry.hidden=false;retry.disabled=false;
+   stepInfo.textContent='الخطوة 2 من 2: تحقّق من وجود ملف RAWAA_Manager_Transfer في تطبيق الملفات، ثم فعّل مربع التأكيد بعد نجاح فحص السحابة.';
+   message.textContent=source+' تم تجهيز النسخة محليًا، لكننا ما زلنا نتحقق من مطابقتها لأحدث سجلات الخادم.';
    validate();
   };
-  saved.onchange=validate;
-  backup.onclick=async()=>{
-   if(!validate()){message.textContent='أدخل بريد Gmail جديدًا مختلفًا عن حساب المدير الحالي.';return;}
-   if(hasUnsubmittedForm){message.textContent='احفظ أو ألغِ مسودة نموذج الموظف المفتوحة أولًا.';return;}
-   if(localRev!==storedRev){await flush();if(stopped||localRev!==storedRev){message.textContent='تعذّر حفظ جميع التعديلات، لا تنتقل الآن.';return;}}
+  const verifyPrepared=async()=>{
+   if(!downloaded){message.textContent='اختر ملف النسخة المشفّرة أو نزّله أولًا.';return false;}
+   retry.disabled=true;serverConfirmed=false;validate();
    try{
-    backup.disabled=true;
-    await checkServerVersion();
-    const snapshot=localStorage._snapshot(),hash=await snapshotFingerprint(snapshot);
-    const exportAtRevision=rev,exportAtLocalRevision=localRev;
-    const success=await encryptedDownload('RAWAA_Manager_Transfer_'+new Date().toISOString().slice(0,10)+'.json',snapshot);
-    if(success){
-     await checkServerVersion();
-     downloaded=true;exportRevision=exportAtRevision;exportLocalRevision=exportAtLocalRevision;exportFingerprint=hash;
-     saved.disabled=false;saved.checked=false;
-     stepInfo.textContent='الخطوة 2 من 2: افتح تطبيق الملفات، وابحث عن RAWAA_Manager_Transfer، ثم فعّل المربع الصغير أدناه إذا كان الملف موجودًا وكلمة مروره محفوظة.';
-     message.textContent='تم تجهيز النسخة المشفّرة. '+transferSummary(snapshot)+'. تحقّق من حفظ الملف وكلمة مروره، ثم ضع علامة التأكيد. إذا تغير أي سجل بعدها يجب تنزيل نسخة أحدث.';
-    }
-    else message.textContent='لم تُنزّل نسخة احتياطية. لن يُسمح بالانتقال.';
-    validate();
-   }catch(e){message.textContent='تعذّر إنشاء النسخة: '+safe(e.message);}
-   finally{backup.disabled=false;}
-  };
-  go.onclick=async()=>{
-   if(!validate()||!saved.checked||!downloaded){
-    message.textContent='تغيرت البيانات أو لم تُحفظ نسخة مشفّرة. أعد تنزيل نسخة حديثة بعد حفظ كافة التعديلات.';
-    return;
-   }
-   if(!confirm('هل تحققت من حفظ نسخة الرواتب المشفّرة وكلمة مرورها؟ سيُسجل خروجك من الحساب القديم، الذي سيبقى محتفظًا ببياناته لحين انتهاء النقل.'))return;
-   go.disabled=true;
-   try{
-    if(hasUnsubmittedForm)throw Error('توجد مسودة نموذج غير محفوظة.');
-    if(localRev!==storedRev){await flush();if(stopped||localRev!==storedRev)throw Error('بيانات غير محفوظة.');}
+    if(stopped||hasUnsubmittedForm||localRev!==storedRev||
+       rev!==exportRevision||localRev!==exportLocalRevision)
+      throw Error('هناك بيانات تغيّرت أو مسودة غير محفوظة منذ إنشاء النسخة. احفظ التعديلات ونزّل نسخة جديدة.');
+    const currentHash=await snapshotFingerprint(localStorage._snapshot());
+    if(currentHash!==exportFingerprint)
+     throw Error('محتوى البيانات تغيّر بعد إنشاء ملف النسخة. نزّل ملفًا جديدًا من البيانات الحديثة.');
     await checkServerVersion();
     if(rev!==exportRevision||localRev!==exportLocalRevision||
        await snapshotFingerprint(localStorage._snapshot())!==exportFingerprint)
-      throw Error('تغيّرت بيانات الموظفين منذ إنشاء النسخة المشفّرة. نزّل نسخة أحدث قبل الانتقال.');
-    const normalizedEmail=target.value.trim().toLowerCase();
+      throw Error('تغيّرت سجلات الموظفين خلال فحص الاتصال. نزّل نسخة جديدة.');
+    serverConfirmed=true;
+    stepInfo.textContent='تم التحقق من تطابق النسخة مع السجلات الحالية. تأكد أن الملف محفوظ في تطبيق الملفات وأنك تعرف كلمة مروره، ثم فعّل المربع الصغير للمتابعة.';
+    message.textContent='✓ تم التحقق من النسخة ومزامنة السحابة. '+transferSummary(localStorage._snapshot())+'. لا يزال حساب المدير القديم محفوظًا.';
+    validate();return true;
+   }catch(error){
+    serverConfirmed=false;validate();
+    message.textContent='النسخة المشفّرة الموجودة لم تُحذف. تعذّر اعتمادها الآن: '+safe(error.message)+'. إذا كان الاتصال قد انقطع مؤقتًا، اضغط «إعادة فحص الاتصال دون تنزيل جديد».';
+    return false;
+   }finally{retry.disabled=false;}
+  };
+  target.oninput=()=>{
+   clearPrepared();stepInfo.textContent='الخطوة 1 من 2: اختر البريد الجديد، ثم نزّل نسخة مشفّرة أو حدّد ملف النسخة المحفوظ سابقًا.';
+  };
+  saved.onchange=validate;
+  retry.onclick=verifyPrepared;
+  backup.onclick=async()=>{
+   if(!validEmail()){message.textContent='أدخل عنوان Gmail مختلفًا وصحيحًا قبل إنشاء النسخة.';return;}
+   if(hasUnsubmittedForm){message.textContent='احفظ أو ألغِ أي مسودة موظف قبل إنشاء النسخة.';return;}
+   if(localRev!==storedRev){await flush();if(stopped||localRev!==storedRev){message.textContent='انتظر حفظ كافة التعديلات في السحابة قبل النسخ.';return;}}
+   backup.disabled=true;clearPrepared();
+   try{
+    // Only encrypt a version already known to be the server's latest revision.
+    await checkServerVersion();
+    const snapshot=localStorage._snapshot();
+    const fingerprint=await snapshotFingerprint(snapshot);
+    const exportedRevision=rev,exportedLocalRevision=localRev;
+    const success=await encryptedDownload('RAWAA_Manager_Transfer_'+new Date().toISOString().slice(0,10)+'.json',snapshot);
+    if(!success){message.textContent='أُلغيت عملية التنزيل؛ لم يُنشأ ملف جديد.';return;}
+    // Mark the file as created BEFORE a second network request. iOS Safari
+    // may complete the download while the following fetch fails with Load failed.
+    prepareFile(fingerprint,exportedRevision,exportedLocalRevision,'✓ صدر أمر تنزيل النسخة المشفّرة.');
+    await verifyPrepared();
+   }catch(error){
+    message.textContent='لم تكتمل خطوة تجهيز النسخة: '+safe(error.message)+'. إذا كان لديك ملف منزّل بالفعل، اختر «لدي النسخة بالفعل» للتحقق منه.';
+   }finally{backup.disabled=false;}
+  };
+  existing.onclick=()=>fileInput.click();
+  fileInput.onchange=async()=>{
+   const file=fileInput.files?.[0];fileInput.value='';if(!file)return;
+   existing.disabled=true;clearPrepared();
+   try{
+    if(!validEmail())throw Error('أدخل عنوان Gmail المستهدف أولًا.');
+    if(file.size>4500000)throw Error('ملف النسخة أكبر من الحد المقبول.');
+    if(hasUnsubmittedForm||stopped||localRev!==storedRev)throw Error('توجد تعديلات غير محفوظة. احفظها قبل استخدام النسخة.');
+    const parsed=JSON.parse(await file.text());
+    if(parsed?.format!=='RAWAA_ENCRYPTED_BACKUP_V1'||parsed?.vault?.format!=='RAWAA_WORK_AES256_GCM_V1')
+     throw Error('اختر نسخة RAWAA المشفّرة بصيغة JSON. لن نستخدم ملفات الرواتب غير المشفّرة في نقل المدير.');
+    // decodeBackup checks the AES-GCM authentication tag entirely in Safari;
+    // the password and the file never leave this device.
+    const data=await decodeBackup(parsed);if(!data){message.textContent='ألغيت التحقق من الملف.';return;}
+    const importedHash=await snapshotFingerprint(data);
+    const currentHash=await snapshotFingerprint(localStorage._snapshot());
+    if(importedHash!==currentHash)
+     throw Error('الملف يخص سجلات أخرى أو نسخة أقدم. لن ننقل بيانات غير مطابقة؛ نزّل نسخة جديدة من الحساب الحالي.');
+    prepareFile(importedHash,rev,localRev,'✓ تم فتح ملف النسخة المشفّرة والتحقق من سلامته على الجهاز.');
+    await verifyPrepared();
+   }catch(error){
+    message.textContent='تعذّر اعتماد ملف النسخة: '+safe(error.message)+'. لم تُغيَّر أي بيانات في السحابة.';
+   }finally{existing.disabled=false;}
+  };
+  go.onclick=async()=>{
+   if(!validate()||go.disabled){message.textContent='يجب حفظ نسخة مشفّرة حديثة وتأكيد مطابقتها مع السحابة قبل الانتقال.';return;}
+   if(!confirm('هل حفظت ملف النسخة المشفّرة وكلمة مروره؟ سيتم تسجيل الخروج فقط، دون حذف بيانات أو إلغاء صلاحيات المدير القديم.'))return;
+   go.disabled=true;
+   try{
+    if(hasUnsubmittedForm||localRev!==storedRev||stopped)throw Error('هناك بيانات غير محفوظة.');
+    await checkServerVersion();
+    if(rev!==exportRevision||localRev!==exportLocalRevision||
+      await snapshotFingerprint(localStorage._snapshot())!==exportFingerprint)
+      throw Error('تغيّرت البيانات منذ إنشاء النسخة المشفّرة. نزّل نسخة جديدة.');
+    const newEmail=target.value.trim().toLowerCase();
     sessionStorage.setItem('rawaa_manager_transfer_expected',JSON.stringify({
-     email:normalizedEmail,fingerprint:exportFingerprint,sourceRevision:rev,createdAt:new Date().toISOString()
+     email:newEmail,fingerprint:exportFingerprint,sourceRevision:rev,createdAt:new Date().toISOString()
     }));
-    sessionStorage.setItem('rawaa_manager_transfer_target',normalizedEmail);
-    const out=await client.auth.signOut();
-    if(out.error)throw Error(out.error.message||'فشل تسجيل الخروج');
+    sessionStorage.setItem('rawaa_manager_transfer_target',newEmail);
+    const signout=await client.auth.signOut();
+    if(signout.error)throw Error(signout.error.message||'تعذّر تسجيل الخروج');
     location.reload();
-   }catch(e){
+   }catch(error){
     sessionStorage.removeItem('rawaa_manager_transfer_expected');
-    message.textContent='لم يحدث انتقال: '+safe(e.message);go.disabled=false;
+    serverConfirmed=false;
+    message.textContent='لم يُنقل الحساب أو يُحذف أي سجل: '+safe(error.message)+'. تحقق من الاتصال ثم اضغط «إعادة فحص الاتصال» إذا بقيت مسجّلًا.';
+    validate();
    }
   };
-  panel.append(title,lead,oldEmail,emailLabel,notes,backup,stepInfo,confirmSaved,go,message,close);
+  panel.append(title,lead,oldEmail,emailLabel,notes,backup,existing,fileInput,retry,stepInfo,confirmSaved,go,message,close);
   overlay.append(panel);document.body.append(overlay);
  }
 
