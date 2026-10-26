@@ -20,13 +20,25 @@ const server=http.createServer((req,res)=>{try{
     const native=window.localStorage;
     const getRow=()=>JSON.parse(native.getItem('neon_mock_row')||'null');
     const setRow=v=>native.setItem('neon_mock_row',JSON.stringify(v));
-    const getSession=()=>native.getItem('neon_mock_session')==='yes'?{data:{session:{id:'sess-1'},user:{id:'uuid-example-user-1',email:'tester@example.com'}},error:null}:{data:{session:null,user:null},error:null};
+    const getSession=()=>native.getItem('neon_mock_session')==='yes'?{data:{session:{id:'sess-1'},user:{id:'uuid-example-user-1',email:'tester@example.com',emailVerified:native.getItem('neon_mock_email_verified')==='yes'}},error:null}:{data:{session:null,user:null},error:null};
     window.__fakeCloudClient={
       auth:{
         getSession:async()=>getSession(),
         signUp:{email:async()=>{native.setItem('neon_mock_session','yes');return {data:{user:{id:'uuid-example-user-1'}}};}},
         signIn:{email:async()=>{native.setItem('neon_mock_session','yes');return {data:{user:{id:'uuid-example-user-1'}}};}},
-        signOut:async()=>{native.removeItem('neon_mock_session');return {error:null}}
+        signOut:async()=>{native.removeItem('neon_mock_session');return {error:null}},
+        emailOtp:{
+          sendVerificationOtp:async({email,type})=>{
+            if(email!=='tester@example.com'||type!=='email-verification')return {error:{message:'Invalid request'}};
+            native.setItem('neon_mock_email_otp_sent','yes');return {data:{success:true},error:null};
+          },
+          verifyEmail:async({email,otp})=>{
+            if(email==='tester@example.com'&&otp==='123456'&&native.getItem('neon_mock_email_otp_sent')==='yes'){
+              native.setItem('neon_mock_email_verified','yes');return {data:{success:true},error:null};
+            }
+            return {error:{message:'Invalid OTP'}};
+          }
+        }
       },
       from:()=>({
         select:()=>({eq:()=>({maybeSingle:async()=>({data:getRow(),error:null})})}),
@@ -53,6 +65,16 @@ const server=http.createServer((req,res)=>{try{
   await page.locator('#staff-manage-cards .staff-manage-card').first().waitFor({timeout:16000});
   assert.equal(await page.getByRole('button',{name:'استعادة نسخة احتياطية'}).count(),1,'restore action available');
   assert.equal(await page.locator('#fin-backup').isHidden(),true,'legacy unencrypted backup must be unavailable in cloud workspace');
+  await page.locator('#cloud-security-account-button').click();
+  await page.locator('#cloud-email-verified-status').waitFor();
+  assert.match(await page.locator('#cloud-email-verified-status').innerText(),/لم يتم تأكيد/);
+  await page.locator('#cloud-send-email-otp').click();
+  await page.waitForFunction(()=>window.localStorage.getItem('neon_mock_email_otp_sent')==='yes');
+  await page.locator('#cloud-verify-email-form input').fill('123456');
+  await page.locator('#cloud-verify-email-form button').click();
+  await page.locator('#cloud-email-verified-status').getByText('✓ تم تأكيد Gmail بنجاح.').waitFor();
+  assert.equal(await page.evaluate(()=>window.localStorage.getItem('neon_mock_email_verified')),'yes');
+  await page.locator('#cloud-account-security').getByRole('button',{name:'إغلاق'}).click();
   await page.locator('#staff-manage-cards [data-rename-staff="001"]').click();
   await page.locator('.staff-inline-rename input').fill('مشرف السحابة');
   await page.locator('.staff-inline-rename button[type="submit"]').click();

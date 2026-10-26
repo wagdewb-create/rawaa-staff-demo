@@ -182,11 +182,73 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    location.reload();
   }catch(e){warn('فشل نقل الخزنة السابقة: '+safe(e.message));}
  }
+ function accountSecurity(){
+  // This screen never accepts Gmail passwords; only a one-time email code.
+  const overlay=item('div',undefined,'rawaa-cloud-overlay');
+  overlay.id='cloud-account-security';
+  const panel=item('section',undefined,'rawaa-cloud-dialog');
+  const title=item('h2','حماية حساب مدير RAWAA');
+  const info=item('p','البريد المرتبط بحساب المدير: '+String(user?.email||'غير معروف'));
+  const verification=item('p',user?.emailVerified?'✓ البريد الإلكتروني مؤكَّد في Neon':'لم يتم تأكيد ملكية البريد الإلكتروني بعد.');
+  verification.id='cloud-email-verified-status';
+  const warning=item('p','لحماية بيانات الموظفين، لا تنشر كلمة المرور أو رمز البريد. تأكيد Gmail يثبت ملكية عنوان البريد، ولا يفعّل تسجيل الدخول بزر Google تلقائيًا.');
+  const send=item('button','إرسال رمز تأكيد إلى Gmail');
+  send.type='button';send.id='cloud-send-email-otp';
+  const form=item('form');form.id='cloud-verify-email-form';
+  const label=item('label','رمز التأكيد المرسل إلى البريد');
+  const input=item('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.maxLength=12;input.required=true;input.pattern='[0-9]{4,12}';input.placeholder='أدخل رمز البريد هنا';label.append(input);
+  const verify=item('button','تأكيد البريد');verify.type='submit';
+  const result=item('p');result.id='cloud-otp-message';result.setAttribute('role','status');
+  const notes=item('p','تغيير حساب المدير إلى Gmail آخر يتطلب تسليم صلاحيات مستقلًا؛ تسجيل الخروج والدخول ببريد مختلف لا ينقل الرواتب، ولا يلغي صلاحية الحساب القديم. استخدم النسخة المشفّرة قبل أي انتقال.');
+  const close=item('button','إغلاق');close.type='button';close.onclick=()=>overlay.remove();
+  let lastSent=0;
+  if(user?.emailVerified){send.hidden=true;form.hidden=true;}
+  send.onclick=async()=>{
+    if(Date.now()-lastSent<60000){result.textContent='انتظر دقيقة قبل طلب رمز جديد.';return;}
+    if(!user?.email){result.textContent='لا يوجد بريد مرتبط بالحساب.';return;}
+    send.disabled=true;result.textContent='جارٍ إرسال رمز التحقق إلى البريد…';
+    try{
+      if(!client?.auth?.emailOtp?.sendVerificationOtp)throw Error('ميزة رموز التحقق غير متاحة في جلسة الدخول الحالية.');
+      const response=await client.auth.emailOtp.sendVerificationOtp({email:user.email,type:'email-verification'});
+      if(response.error)throw Error(response.error.message||'تعذر إرسال الرمز.');
+      lastSent=Date.now();result.textContent='إذا كان البريد يدعم استلام الرسائل، افحص Gmail والبريد غير المرغوب وأدخل رمز التحقق. لا تشارك الرمز في المحادثة.';
+    }catch(e){result.textContent='فشل إرسال الرمز: '+safe(e.message);}
+    finally{send.disabled=false;}
+  };
+  form.onsubmit=async event=>{
+    event.preventDefault();if(verify.disabled)return;
+    const otp=input.value.trim();
+    if(!/^[0-9]{4,12}$/.test(otp)){result.textContent='أدخل رمزًا رقميًا صحيحًا من البريد.';return;}
+    verify.disabled=true;result.textContent='جارٍ التحقق من الرمز…';
+    try{
+      if(!client?.auth?.emailOtp?.verifyEmail)throw Error('التحقق من البريد غير مدعوم في جلسة الدخول الحالية.');
+      const response=await client.auth.emailOtp.verifyEmail({email:user.email,otp});
+      if(response.error)throw Error(response.error.message||'الرمز غير صحيح أو انتهت صلاحيته.');
+      const check=await client.auth.getSession();
+      if(check.error)throw Error(check.error.message||'تعذر تحديث حالة الحساب.');
+      if(check.data?.user?.id===user.id&&check.data.user.emailVerified===true){
+        user=check.data.user;
+        verification.textContent='✓ تم تأكيد Gmail بنجاح.';
+        const account=$('cloud-security-account-button');if(account)account.textContent='✓ Gmail مؤكَّد · إعدادات الأمان';
+        send.hidden=true;form.hidden=true;
+        result.textContent='تم تأكيد ملكية البريد. احتفظ بنفس حساب المدير على جميع الأجهزة.';
+      }else{
+        result.textContent='استقبل الخادم طلب التحقق، لكن الجلسة لم تعرض حالة «مؤكَّد» بعد. أغلق النافذة وأعد تحميل الصفحة للتحقق؛ لا تنشئ حسابًا جديدًا.';
+      }
+    }catch(e){result.textContent='تعذر تأكيد البريد: '+safe(e.message);}
+    finally{input.value='';verify.disabled=false;}
+  };
+  form.append(label,verify);
+  panel.append(title,info,verification,warning,send,form,result,notes,close);
+  overlay.append(panel);document.body.append(overlay);
+ }
  function cloudBar(){
   const bar=item('div',undefined,'rawaa-cloud-bar');bar.id='cloud-control-bar';
   const h=item('strong','RAWAA | السحابة');status=item('span','✓ تم تحميل الحساب');
   const userInfo=item('small',user.email||'الحساب الحالي');
   const actions=item('div',undefined,'rawaa-cloud-actions');
+  const security=item('button',user?.emailVerified?'✓ Gmail مؤكَّد · إعدادات الأمان':'تأكيد Gmail · إعدادات الأمان');
+  security.type='button';security.id='cloud-security-account-button';security.onclick=accountSecurity;
   const backup=item('button','تنزيل نسخة احتياطية مشفّرة');backup.onclick=async()=>{
    try{if(localRev!==storedRev){await flush();if(stopped)return;}
     if(await encryptedDownload('RAWAA_Cloud_Backup_'+new Date().toISOString().slice(0,10)+'.json',localStorage._snapshot()))statusMsg('✓ تم تجهيز نسخة مشفّرة؛ احفظ كلمة المرور منفصلة.');
@@ -217,7 +279,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    if(localRev!==storedRev){await flush();if(stopped)return;}
    await client.auth.signOut();location.reload();
   };
-  actions.append(backup,restore,restoreInput,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
+  actions.append(security,backup,restore,restoreInput,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
   const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
  }
  function style(){
@@ -274,6 +336,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    const track=e=>{
     // A focused field alone is not an unsaved draft; only user edits are.
     // Composition guards cover keyboards that commit text on blur (iPhone).
+    if(e.target?.closest?.('#cloud-account-security'))return;
     if(e.target?.closest?.('form'))hasUnsubmittedForm=true;
    };
    document.addEventListener('input',track,true);
