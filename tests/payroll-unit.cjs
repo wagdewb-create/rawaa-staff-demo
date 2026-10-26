@@ -14,5 +14,5 @@ let data=context.window.RAWAA_PAYSLIP_TEST.data();assert.equal(data.sums.normal,
 el('payslip-month').value='';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(el('payslip-document').hidden,true);assert.equal(el('payslip-print').disabled,true);
 el('payslip-month').value='2026-11';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,0);assert.equal(el('payslip-document').hidden,false);
 el('payslip-month').value='2026-10';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,454);
-assert.ok(fs.readFileSync('service-worker.js','utf8').includes("'./staff.css'"));
+assert.match(fs.readFileSync('service-worker.js','utf8'), /'\.\/staff\.css(?:\?v=\d+)?'/);
 console.log('PASS: script syntax, split-day overtime, historical rates, overnight month allocation, withdrawals/payments, invalid month clearing, empty month and recovery, offline CSS manifest');
