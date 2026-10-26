@@ -25,6 +25,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
  const SELECT='owner_id,revision,payload,updated_at';
  let client=null,user=null,rev=0,queue=Promise.resolve(),localRev=0,storedRev=0,stopped=false,pulling=false,editingStarted=false;
  let syncTimer=null,pollTimer=null,status=null,head=null;let loggedIn=false;
+ let lastActivity=Date.now(),hasUnsubmittedForm=false;const RELOAD_IDLE_MS=45000;
  const $=id=>document.getElementById(id);
  const safe=message=>String(message||'فشل الاتصال');
  function statusMsg(m,error=false){if(status){status.textContent=m;status.style.color=error?'#a72820':'#165d42';}}
@@ -93,8 +94,12 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   if(!loggedIn||stopped||pulling||localRev!==storedRev)return;
   pulling=true;
   try{const row=await getRow();if(row&&Number(row.revision)!==rev){
+   const active=document.activeElement;
+   const fieldActive=!!(active&&active.matches&&active.matches('input, textarea, select, [contenteditable="true"]'));
+   const idle=!hasUnsubmittedForm&&!fieldActive&&(Date.now()-lastActivity>RELOAD_IDLE_MS||document.visibilityState==='hidden');
+   if(idle){stopped=true;statusMsg('وصل تحديث من جهاز آخر؛ يجري فتح أحدث السجلات.');location.reload();return;}
    stopped=true;
-   warn('هناك تحديث محفوظ من جهاز آخر. حدّث الصفحة لجلبه. إذا أدخلت تغييرات محلية، صدّرها أولًا.',true);
+   warn('وصل تحديث من جهاز آخر (نسخة '+Number(row.revision)+'). لن تُستبدل مسودتك؛ صدّر نسخة طوارئ إن لزم، ثم اختر تحميل أحدث نسخة من السحابة.',true);
   }}catch(e){statusMsg('تتعذر مراجعة تغييرات الأجهزة الأخرى حاليًا؛ تحقق من الشبكة.',true);}finally{pulling=false;}
  }
  async function loadExistingScripts(){
@@ -203,7 +208,11 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    storedRev=localRev=0;loggedIn=true;
    localStorage._observe(schedule);
    statusMsg('✓ متصل بالسحابة؛ البيانات متاحة على الأجهزة المتصلة بالحساب');
-   pollTimer=setInterval(poll,20000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')poll();});
+   const track=e=>{lastActivity=Date.now();if((e.type==='input'||e.type==='change')&&e.target?.closest?.('form'))hasUnsubmittedForm=true;};
+   document.addEventListener('pointerdown',track,true);document.addEventListener('input',track,true);document.addEventListener('change',track,true);
+   document.addEventListener('submit',()=>{hasUnsubmittedForm=false;lastActivity=Date.now();},true);
+   document.addEventListener('reset',()=>{hasUnsubmittedForm=false;lastActivity=Date.now();},true);
+   pollTimer=setInterval(poll,12000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){lastActivity=Date.now();poll();}});
    window.addEventListener('beforeunload',e=>{if(localRev!==storedRev){e.preventDefault();e.returnValue='';}});
    window.addEventListener('online',()=>{if(!stopped&&localRev!==storedRev)flush();else poll();});
   }catch(e){warn('فشل تحميل حساب RAWAA: '+safe(e.message),true);}
