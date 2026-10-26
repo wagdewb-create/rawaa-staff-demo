@@ -25,12 +25,12 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
  const SELECT='owner_id,revision,payload,updated_at';
  let client=null,user=null,rev=0,queue=Promise.resolve(),localRev=0,storedRev=0,stopped=false,pulling=false,editingStarted=false;
  let syncTimer=null,pollTimer=null,status=null,head=null;let loggedIn=false;
- let lastActivity=Date.now(),hasUnsubmittedForm=false;const RELOAD_IDLE_MS=45000;
+ let hasUnsubmittedForm=false;
  const $=id=>document.getElementById(id);
  const safe=message=>String(message||'فشل الاتصال');
  function statusMsg(m,error=false){if(status){status.textContent=m;status.style.color=error?'#a72820':'#165d42';}}
  function item(tag,text,className){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;}
- function warn(text,block=false){
+ function warn(text,block=false,conflict=false){
   statusMsg(text,true);
   if(!block)return;
   stopped=true;
@@ -40,7 +40,9 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   box.append(item('h2','توقفت مزامنة RAWAA'),item('p',text));
   const save=item('button','تنزيل نسخة طوارئ من التعديلات غير المرسلة');
   save.type='button';save.onclick=async()=>{try{await encryptedDownload('RAWAA_Unsent_Changes_'+new Date().toISOString().slice(0,10)+'.json',localStorage._snapshot());}catch(e){statusMsg('لم تُنشأ نسخة الطوارئ: '+safe(e.message),true);}};
-  const retry=item('button','إعادة المحاولة');retry.type='button';retry.onclick=async()=>{overlay.remove();stopped=false;try{await checkServerVersion();schedule();}catch(e){warn('تعذر استئناف الحفظ: '+safe(e.message),true);}};
+  const retry=item('button','إعادة المحاولة');retry.type='button';
+  if(conflict)retry.hidden=true;
+  retry.onclick=async()=>{overlay.remove();stopped=false;try{await checkServerVersion();if(localRev!==storedRev)await flush();else await poll();}catch(e){warn('تعذر استئناف الحفظ: '+safe(e.message),true);}};
   const reload=item('button','تحميل أحدث نسخة من السحابة');reload.type='button';reload.onclick=()=>{
    if(confirm('قد تضيع المدخلات غير المحفوظة. صدّر نسخة طوارئ أولًا. متابعة؟'))location.reload();
   };
@@ -120,20 +122,32 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    rev=Number(result.data.revision);storedRev=desired;
    statusMsg(storedRev===localRev?'✓ محفوظ ومتزامن مع جميع أجهزتك':'تُحفظ تغييرات إضافية...');
    if(storedRev!==localRev){setTimeout(flush,0);}
-  }).catch(err=>{warn('لم يتم اعتماد بعض التغييرات على السحابة: '+safe(err.message),true);});
+  }).catch(err=>{warn('لم يتم اعتماد بعض التغييرات على السحابة: '+safe(err.message),true,/تعارض تحديث/.test(String(err.message)));});
   return queue;
  }
  async function poll(){
   if(!loggedIn||stopped||pulling||localRev!==storedRev)return;
   pulling=true;
-  try{const row=await getRow();if(row&&Number(row.revision)!==rev){
-   const active=document.activeElement;
-   const fieldActive=!!(active&&active.matches&&active.matches('input, textarea, select, [contenteditable="true"]'));
-   const idle=!hasUnsubmittedForm&&!fieldActive&&(Date.now()-lastActivity>RELOAD_IDLE_MS||document.visibilityState==='hidden');
-   if(idle){stopped=true;statusMsg('وصل تحديث من جهاز آخر؛ يجري فتح أحدث السجلات.');location.reload();return;}
-   stopped=true;
-   warn('وصل تحديث من جهاز آخر (نسخة '+Number(row.revision)+'). لن تُستبدل مسودتك؛ صدّر نسخة طوارئ إن لزم، ثم اختر تحميل أحدث نسخة من السحابة.',true);
-  }}catch(e){statusMsg('تتعذر مراجعة تغييرات الأجهزة الأخرى حاليًا؛ تحقق من الشبكة.',true);}finally{pulling=false;}
+  try{
+   const row=await getRow();
+   if(!row)throw Error('مساحة العمل غير متاحة.');
+   const incoming=Number(row.revision);
+   if(incoming===rev)return;
+   // A request may finish after a local edit begins. Never reload over
+   // unsent saves or form drafts, even if this request started when idle.
+   if(localRev!==storedRev)return;
+   if(incoming<rev){
+    warn('النسخة الموجودة على الخادم أقدم من بيانات هذا الجهاز. أوقفنا التعديل احتياطيًا.',true,true);
+    return;
+   }
+   if(!hasUnsubmittedForm){
+    stopped=true;
+    statusMsg('✓ وصلت بيانات جديدة من جهاز آخر. جارٍ تحديث الصفحة بأمان…');
+    location.reload();
+    return;
+   }
+   warn('وصل تحديث من جهاز آخر (نسخة '+incoming+'). توجد مدخلات في نموذج لم يتم إرسالها بعد؛ احفظ مسودة طوارئ مشفّرة قبل فتح أحدث نسخة من السحابة.',true,true);
+  }catch(e){statusMsg('تتعذر مراجعة تغييرات الأجهزة الأخرى حاليًا؛ تحقق من الشبكة.',true);}finally{pulling=false;}
  }
  async function loadExistingScripts(){
   const deferred=[...document.querySelectorAll('script[data-rawaa-deferred]')];
@@ -257,11 +271,19 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    storedRev=localRev=0;loggedIn=true;
    localStorage._observe(schedule);
    statusMsg('✓ متصل بالسحابة؛ البيانات متاحة على الأجهزة المتصلة بالحساب');
-   const track=e=>{lastActivity=Date.now();if((e.type==='input'||e.type==='change')&&e.target?.closest?.('form'))hasUnsubmittedForm=true;};
-   document.addEventListener('pointerdown',track,true);document.addEventListener('input',track,true);document.addEventListener('change',track,true);
-   document.addEventListener('submit',()=>{hasUnsubmittedForm=false;lastActivity=Date.now();},true);
-   document.addEventListener('reset',()=>{hasUnsubmittedForm=false;lastActivity=Date.now();},true);
-   pollTimer=setInterval(poll,12000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){lastActivity=Date.now();poll();}});
+   const track=e=>{
+    // A focused field alone is not an unsaved draft; only user edits are.
+    // Composition guards cover keyboards that commit text on blur (iPhone).
+    if(e.target?.closest?.('form'))hasUnsubmittedForm=true;
+   };
+   document.addEventListener('input',track,true);
+   document.addEventListener('change',track,true);
+   document.addEventListener('compositionstart',track,true);
+   document.addEventListener('beforeinput',track,true);
+   document.addEventListener('submit',()=>{hasUnsubmittedForm=false;},true);
+   document.addEventListener('reset',()=>{hasUnsubmittedForm=false;},true);
+   pollTimer=setInterval(poll,12000);
+   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')poll();});
    window.addEventListener('beforeunload',e=>{if(localRev!==storedRev){e.preventDefault();e.returnValue='';}});
    window.addEventListener('online',()=>{if(!stopped&&localRev!==storedRev)flush();else poll();});
   }catch(e){warn('فشل تحميل حساب RAWAA: '+safe(e.message),true);}
