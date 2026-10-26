@@ -13,13 +13,17 @@ https://rawaa-staff-demo.onrender.com/?rawaa_release=115
 
 ## وضع العمل المحلي المشفر 1.16
 
-الرابط البرمجي في المستودع جاهز؛ للتفعيل على GitHub Pages يجب على مالك المستودع فتح:
+**رابط وضع العمل على Render (تم التحقق من نشر الإصدار 1.16 بتاريخ 2026-10-26):**
+https://rawaa-staff-demo.onrender.com/work.html
+
+رابط النسخة التجريبية العامة (بيانات منفصلة): https://rawaa-staff-demo.onrender.com/
+
+إن أردت استضافة GitHub Pages كخيار مستقل، يمكن لمالك المستودع تفعيلها عبر:
 https://github.com/wagdewb-create/rawaa-staff-demo/settings/pages
 ثم اختيار **Build and deployment → Source: Deploy from a branch → Branch: main → Folder: /(root) → Save**.
-بعد اكتمال نشر Pages يظهر وضع العمل على:
-https://wagdewb-create.github.io/rawaa-staff-demo/work.html
+هذا خيار إضافي **غير مطلوب** لاستخدام Render، ولا ينقل البيانات تلقائيًا بين النطاقين.
 
-**تنبيه:** استضافة Render المتاحة حاليًا تأخرت في النشر وتعرض إصدارًا أقدم (1.13 عند الفحص بتاريخ 2026-10-26)، لذلك لا تدّعِ أن رابط Render يدعم وضع العمل الجديد قبل إعادة النشر والتحقق. هذه الخطوة لا تنقل بيانات من متصفح إلى آخر.
+تم أيضًا تشغيل اختبار متصفح Chrome فعلي بنجاح باستخدام `node tests/work-browser.cjs` مع Playwright؛ شمل إنشاء كلمة مرور، حفظ اسم موظف مشفر، وإعادة فتح الصفحة واسترداد الاسم.
 
 - شاشة قفل بكلمة مرور جديدة (12 حرفًا على الأقل)، مشتقة بمكتبة Web Crypto الأصلية (PBKDF2-SHA256، 310000 تكرار)، وتخزين محلي بمفتاح AES-GCM 256 بت وملح وIV عشوائيين.
 - يتم عزل بيانات وضع العمل في قاعدة IndexedDB مشفرة، دون استخدام أسماء الموظفين في `localStorage` العادي، ودون إرسالها إلى خادم.
