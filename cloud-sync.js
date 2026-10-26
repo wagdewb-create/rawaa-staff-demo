@@ -323,7 +323,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
       throw Error('تغيّرت سجلات الموظفين خلال فحص الاتصال. نزّل نسخة جديدة.');
     serverConfirmed=true;
     stepInfo.textContent='تم التحقق من تطابق النسخة مع السجلات الحالية. تأكد أن الملف محفوظ في تطبيق الملفات وأنك تعرف كلمة مروره، ثم فعّل المربع الصغير للمتابعة.';
-    message.textContent='✓ تم التحقق من النسخة ومزامنة السحابة. '+transferSummary(localStorage._snapshot())+'. لا يزال حساب المدير القديم محفوظًا.';
+    message.textContent='✓ تم التحقق من النسخة ومزامنة السحابة. تم تجهيز النسخة المشفّرة بنجاح. '+transferSummary(localStorage._snapshot())+'. لا يزال حساب المدير القديم محفوظًا.';
     validate();return true;
    }catch(error){
     serverConfirmed=false;validate();
