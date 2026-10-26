@@ -506,6 +506,11 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
      }));
      sessionStorage.removeItem('rawaa_manager_transfer_expected');
      sessionStorage.removeItem('rawaa_manager_transfer_created');
+    }else if(isNewEmptyWorkspace){
+     sessionStorage.setItem('rawaa_manager_restore_verified',JSON.stringify({
+      email:String(user.email||'').toLowerCase(),
+      revision:expectedRevision,fingerprint:fileHash,verifiedAt:new Date().toISOString()
+     }));
     }
     location.reload();
    }catch(e){warn('تعذرت الاستعادة: '+safe(e.message));}
@@ -596,6 +601,17 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
      const success=item('strong','✓ تمت مراجعة النسخة المستعادة وقراءة البيانات نفسها من الخادم (الإصدار '+checked.targetRevision+'). بيانات RAWAA مرتبطة الآن بهذا الحساب. ما زال المدير القديم يحتفظ بإمكانية الدخول إلى سجلاته السابقة؛ لا تعتبر سحب صلاحياته مكتملًا.');
      const dismiss=item('button','إخفاء التنبيه');dismiss.type='button';dismiss.onclick=()=>{sessionStorage.removeItem('rawaa_manager_transfer_restored');panel.remove();};
      panel.append(success,dismiss);const main=document.querySelector('main');if(main)document.body.insertBefore(panel,main);else document.body.prepend(panel);
+    }
+   }catch(_){}
+   try{
+    const info=JSON.parse(sessionStorage.getItem('rawaa_manager_restore_verified')||'null');
+    if(info&&info.email===String(user.email||'').toLowerCase()&&user.emailVerified===true&&
+       Number(info.revision)===rev&&await snapshotFingerprint(row.payload)===info.fingerprint){
+     const banner=item('div',undefined,'rawaa-cloud-bar');banner.id='cloud-restoration-verified';
+     const summary=item('strong','✓ تم تأكيد Gmail واستعادة النسخة المشفّرة، والتحقق من تطابق السجلات على خادم RAWAA. راجع الموظفين والدوام والرواتب. ما زال الحساب القديم يحتفظ بصلاحياته حتى إيقافه بشكل مستقل.');
+     const done=item('button','فهمت');done.type='button';done.onclick=()=>{sessionStorage.removeItem('rawaa_manager_restore_verified');banner.remove();};
+     banner.append(summary,done);
+     const main=document.querySelector('main');if(main)document.body.insertBefore(banner,main);else document.body.prepend(banner);
     }
    }catch(_){}
    storedRev=localRev=0;loggedIn=true;
