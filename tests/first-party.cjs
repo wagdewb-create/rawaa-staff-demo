@@ -2,6 +2,7 @@
 'use strict';
 const assert=require('node:assert/strict');
 const http=require('node:http');
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {makeHandler,cleanCookie}=require('../server');
 (async()=>{
  const requests=[];
@@ -93,6 +94,20 @@ const {makeHandler,cleanCookie}=require('../server');
    assert.equal(authorized.status,200);
    assert.equal(requests[11].url,'https://data.example/neondb/rest/v1/rawaa_cloud_workspace_v1?select=revision');
    assert.equal(requests[11].authorization,'Bearer '+jwt);
+   // Retire the old static login origin. The redirect is client-side so
+   // Safari receives a single first-party auth origin; test without network.
+   const staticHtml=fs.readFileSync(path.join(__dirname,'..','cloud.html'),'utf8');
+   const redirectMatch=staticHtml.match(/<script id="rawaa-secure-origin-redirect">([\\s\\S]*?)<\\/script>/);
+   assert.ok(redirectMatch,'a small first-party redirect script must be present in the document head');
+   const calls=[];
+   for(const oldHost of [true,false]){
+    const fakeLocation={hostname:oldHost?'rawaa-staff-demo.onrender.com':'rawaa-staff-secure.onrender.com',
+      search:'?rawaa=213',hash:'#employees',replace:url=>calls.push(url)};
+    vm.runInNewContext(redirectMatch[1],{window:{location:fakeLocation}});
+   }
+   assert.deepEqual(calls,['https://rawaa-staff-secure.onrender.com/cloud.html?rawaa=213#employees'],
+    'old demo redirects to secure first-party auth, while the secure host never redirects');
+
    const html=await fetch(base+'/cloud.html');assert.equal(html.status,200);
    assert.ok((await html.text()).includes('window.RAWAA_FIRST_PARTY_AUTH=true'));
    const health=await fetch(base+'/health');const healthInfo=await health.json();
