@@ -65,6 +65,16 @@ const server=http.createServer((req,res)=>{try{
   await page.locator('#staff-manage-cards .staff-manage-card').first().waitFor({timeout:16000});
   assert.equal(await page.getByRole('button',{name:'استعادة نسخة احتياطية'}).count(),1,'restore action available');
   assert.equal(await page.locator('#fin-backup').isHidden(),true,'legacy unencrypted backup must be unavailable in cloud workspace');
+  // Manager transfer cannot proceed without an encrypted backup and owner acknowledgment.
+  await page.locator('#cloud-manager-change-button').click();
+  await page.locator('#cloud-manager-new-email').fill('newmanager@gmail.com');
+  assert.equal(await page.locator('#cloud-manager-proceed').isDisabled(),true,'transfer must require a saved encrypted backup');
+  await page.locator('#cloud-manager-export').click();
+  await page.waitForFunction(()=>document.getElementById('cloud-manager-message')?.textContent?.includes('تم تجهيز النسخة'),null,{timeout:16000});
+  assert.equal(await page.locator('#cloud-manager-proceed').isDisabled(),true,'transfer must also require user confirmation');
+  await page.locator('#cloud-manager-file-saved').check();
+  assert.equal(await page.locator('#cloud-manager-proceed').isEnabled(),true,'transfer ready after encrypted export and user confirmation');
+  await page.locator('#cloud-manager-transfer').getByRole('button',{name:'إلغاء'}).click();
   await page.locator('#cloud-security-account-button').click();
   await page.locator('#cloud-email-verified-status').waitFor();
   assert.match(await page.locator('#cloud-email-verified-status').innerText(),/لم يتم تأكيد/);

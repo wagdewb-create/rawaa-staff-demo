@@ -242,6 +242,60 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   panel.append(title,info,verification,warning,send,form,result,notes,close);
   overlay.append(panel);document.body.append(overlay);
  }
+ 
+ function managerTransfer(){
+  if($('cloud-manager-transfer'))return;
+  const overlay=item('div',undefined,'rawaa-cloud-overlay');overlay.id='cloud-manager-transfer';
+  const panel=item('section',undefined,'rawaa-cloud-dialog');
+  const title=item('h2','تغيير حساب مدير RAWAA إلى Gmail آخر');
+  const lead=item('p','هذه عملية نقل نسخة مشفّرة إلى حساب جديد، وليست تغييرًا مباشرًا لهوية Neon. يحتفظ الحساب القديم ببياناته وصلاحياته حتى يتم إيقافه لاحقًا بشكل منفصل.');
+  const oldEmail=item('p','حساب المدير الحالي: '+String(user?.email||''));
+  const emailLabel=item('label','عنوان Gmail الجديد الذي تملكه');
+  const target=item('input');target.type='email';target.autocomplete='off';target.required=true;target.placeholder='example@gmail.com';target.id='cloud-manager-new-email';emailLabel.append(target);
+  const notes=item('p','1) نزّل نسخة مشفّرة من السجلات الحالية واحفظها وكلمة مرورها. 2) افتح حساب RAWAA جديدًا بالبريد الذي تملكه وكلمة مرور RAWAA مستقلة عن Google. 3) أكّد البريد ثم استعد النسخة. 4) بعد اختبار البيانات وصلاحيات الحساب الجديد، يُلغى دخول الحساب القديم بإجراء مستقل.');
+  const backup=item('button','1 · تنزيل نسخة مشفّرة قبل الانتقال');backup.type='button';backup.id='cloud-manager-export';
+  const confirmSaved=item('label');const saved=item('input');saved.type='checkbox';saved.id='cloud-manager-file-saved';confirmSaved.append(saved,document.createTextNode(' تأكدت أن ملف النسخة المشفّرة موجود على جهازي وأنني أعرف كلمة مرورها.'));
+  const go=item('button','2 · تسجيل الخروج لإنشاء حساب المدير الجديد');go.type='button';go.disabled=true;go.id='cloud-manager-proceed';
+  const message=item('p');message.id='cloud-manager-message';message.setAttribute('role','status');
+  const close=item('button','إلغاء');close.type='button';close.onclick=()=>overlay.remove();
+  let downloaded=false;
+  const validate=()=>{
+   const ok=/^[^\s@]+@gmail\.com$/i.test(target.value.trim())&&target.value.trim().toLowerCase()!==String(user?.email||'').toLowerCase();
+   go.disabled=!(downloaded&&saved.checked&&ok);
+   return ok;
+  };
+  target.oninput=()=>{downloaded=false;validate();};
+  saved.onchange=validate;
+  backup.onclick=async()=>{
+   if(!validate()){message.textContent='أدخل بريد Gmail جديدًا مختلفًا عن حساب المدير الحالي.';return;}
+   if(localRev!==storedRev){await flush();if(stopped){message.textContent='تعذّر حفظ جميع التعديلات، لا تنتقل الآن.';return;}}
+   try{
+    backup.disabled=true;
+    await checkServerVersion();
+    const success=await encryptedDownload('RAWAA_Manager_Transfer_'+new Date().toISOString().slice(0,10)+'.json',localStorage._snapshot());
+    if(success){downloaded=true;message.textContent='تم تجهيز النسخة المشفّرة. تحقق من حفظ الملف في التنزيلات أو تطبيق الملفات، ثم ضع علامة التأكيد.';}
+    else message.textContent='لم تُنزّل نسخة احتياطية. لن يُسمح بالانتقال.';
+    validate();
+   }catch(e){message.textContent='تعذّر إنشاء النسخة: '+safe(e.message);}
+   finally{backup.disabled=false;}
+  };
+  go.onclick=async()=>{
+   if(!validate()||!saved.checked||!downloaded)return;
+   if(!confirm('هل تحققت من حفظ نسخة الرواتب المشفّرة وكلمة مرورها؟ سيُسجل خروجك من الحساب القديم، الذي سيبقى محتفظًا ببياناته لحين انتهاء النقل.'))return;
+   go.disabled=true;
+   try{
+    if(localRev!==storedRev){await flush();if(stopped)throw Error('بيانات غير محفوظة.');}
+    await checkServerVersion();
+    sessionStorage.setItem('rawaa_manager_transfer_target',target.value.trim().toLowerCase());
+    const out=await client.auth.signOut();
+    if(out.error)throw Error(out.error.message||'فشل تسجيل الخروج');
+    location.reload();
+   }catch(e){message.textContent='لم يحدث انتقال: '+safe(e.message);go.disabled=false;}
+  };
+  panel.append(title,lead,oldEmail,emailLabel,notes,backup,confirmSaved,go,message,close);
+  overlay.append(panel);document.body.append(overlay);
+ }
+
  function cloudBar(){
   const bar=item('div',undefined,'rawaa-cloud-bar');bar.id='cloud-control-bar';
   const h=item('strong','RAWAA | السحابة');status=item('span','✓ تم تحميل الحساب');
@@ -249,6 +303,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   const actions=item('div',undefined,'rawaa-cloud-actions');
   const security=item('button',user?.emailVerified?'✓ Gmail مؤكَّد · إعدادات الأمان':'تأكيد Gmail · إعدادات الأمان');
   security.type='button';security.id='cloud-security-account-button';security.onclick=accountSecurity;
+  const changeManager=item('button','نقل المدير إلى Gmail جديد');changeManager.type='button';changeManager.id='cloud-manager-change-button';changeManager.onclick=managerTransfer;
   const backup=item('button','تنزيل نسخة احتياطية مشفّرة');backup.onclick=async()=>{
    try{if(localRev!==storedRev){await flush();if(stopped)return;}
     if(await encryptedDownload('RAWAA_Cloud_Backup_'+new Date().toISOString().slice(0,10)+'.json',localStorage._snapshot()))statusMsg('✓ تم تجهيز نسخة مشفّرة؛ احفظ كلمة المرور منفصلة.');
@@ -279,7 +334,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    if(localRev!==storedRev){await flush();if(stopped)return;}
    await client.auth.signOut();location.reload();
   };
-  actions.append(security,backup,restore,restoreInput,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
+  actions.append(security,changeManager,backup,restore,restoreInput,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
   const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
  }
  function style(){
@@ -294,9 +349,15 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   emailLabel.append(email);passLabel.append(pass);
   const message=item('p');message.setAttribute('role','status');
   const submit=item('button','تسجيل الدخول'),create=item('button','إنشاء حساب لأول مرة');submit.type='submit';create.type='button';
-  if(window.RAWAA_FIRST_PARTY_AUTH){
+  let transferTarget='';
+  try{transferTarget=window.RAWAA_FIRST_PARTY_AUTH?(sessionStorage.getItem('rawaa_manager_transfer_target')||''):'';}catch(_){}
+  if(window.RAWAA_FIRST_PARTY_AUTH&&!transferTarget){
    create.hidden=true;create.disabled=true;
-   subtitle.textContent='حساب مدير RAWAA مسجّل بالفعل. سجّل الدخول باستخدام بريده وكلمة مروره. هذه الصفحة لا تحتاج إلى إنشاء حساب جديد.';
+   subtitle.textContent='استخدم حساب المدير المسجّل. لن يظهر إنشاء حساب جديد إلا بعد تجهيز نسخة مشفّرة وبدء نقل المدير من داخل الحساب القديم.';
+  }else if(window.RAWAA_FIRST_PARTY_AUTH&&transferTarget){
+   email.value=transferTarget;email.readOnly=true;
+   create.textContent='إنشاء حساب المدير الجديد بهذا Gmail';
+   subtitle.textContent='أنت في خطوة إنشاء حساب RAWAA للبريد الجديد. استخدم كلمة مرور قوية جديدة خاصة بالتطبيق (وليست كلمة مرور Google). السجلات القديمة لا تُنقل تلقائيًا؛ ستستعيدها من ملف النسخة المشفّرة.';
   }
   form.append(emailLabel,passLabel,submit,create,message);box.append(title,subtitle,form,item('p','لا تشارك كلمة مرور المدير مع موظفين آخرين. إذا لم تتمكن من تسجيل الدخول، لا تنشئ حسابًا آخر بالبريد نفسه.'));overlay.append(box);document.body.append(overlay);
   async function enter(signup){
@@ -316,16 +377,33 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
       await new Promise(done=>setTimeout(done,350+attempt*300));
     }
     if(!session?.user||!session?.session)throw Error('لم تصبح الجلسة نشطة. تحقق من البريد إذا طُلب التأكيد.');
-    user=session.user;pass.value='';overlay.remove();await activate();
+    user=session.user;pass.value='';
+    if(transferTarget&&signup){
+     if(user.email?.toLowerCase()!==transferTarget.toLowerCase())throw Error('جلسة الدخول لا تطابق بريد المدير الجديد.');
+     sessionStorage.removeItem('rawaa_manager_transfer_target');
+     sessionStorage.setItem('rawaa_manager_transfer_created',user.email.toLowerCase());
+    }
+    overlay.remove();await activate();
    }catch(e){message.textContent=safe(e.message);submit.disabled=create.disabled=false;}
   }
   form.addEventListener('submit',e=>{e.preventDefault();enter(false);});
-  create.addEventListener('click',()=>{if(confirm('إنشاء حساب جديد بهذا البريد؟ كل بريد يحتفظ بسجلاته الخاصة.'))enter(true);});
+  create.addEventListener('click',()=>{
+    if(transferTarget&&email.value.trim().toLowerCase()!==transferTarget.toLowerCase()){message.textContent='عنوان البريد لا يطابق Gmail المستهدف.';return;}
+    if(confirm(transferTarget?'إنشاء حساب RAWAA جديد على Gmail المحدد؟ لن تُحذف بيانات الحساب القديم ولن تُنقل إلا باستعادة النسخة المشفّرة.':'إنشاء حساب جديد بهذا البريد؟ كل بريد يحتفظ بسجلاته الخاصة.'))enter(true);
+  });
  }
  async function activate(){
   try{
    const row=await initialRow();rev=Number(row.revision);localStorage._load(check(row.payload));
    cloudBar();await loadExistingScripts();
+   let justTransferred='';
+   try{justTransferred=sessionStorage.getItem('rawaa_manager_transfer_created')||'';}catch(_){}
+   if(justTransferred===String(user.email||'').toLowerCase()){
+    const reminder=item('div',undefined,'rawaa-cloud-bar');reminder.id='cloud-new-manager-reminder';
+    const message=item('strong','تم إنشاء الحساب الجديد. قبل اعتماد هذا Gmail مديرًا فعليًا: اضغط «تأكيد Gmail · إعدادات الأمان»، ثم «استعادة نسخة احتياطية» واختر الملف المشفّر الذي نزّلته من الحساب القديم. بعد التأكد من جميع سجلات الرواتب، اطلب إيقاف وصول الحساب القديم. لا تنسَ كلمة مرور النسخة.');
+    const done=item('button','فهمت');done.type='button';done.onclick=()=>{sessionStorage.removeItem('rawaa_manager_transfer_created');reminder.remove();};
+    reminder.append(message,done);const main=document.querySelector('main');if(main)document.body.insertBefore(reminder,main);else document.body.prepend(reminder);
+   }
    // The legacy public-demo backup exports employee data as plaintext JSON.
    // The cloud workspace exposes only its AES-GCM encrypted backup controls.
    const legacyBackup=$('fin-backup');
