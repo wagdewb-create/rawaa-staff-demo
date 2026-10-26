@@ -121,7 +121,8 @@ window.RAWAA_WORK_STORAGE = localStorage;
     };
     const lock=document.createElement('button');lock.type='button';lock.textContent='قفل';
     lock.onclick=async()=>{await queue;location.reload();};
-    buttons.append(backup,restore,file,lock);bar.append(title,statusText,buttons);
+    const csvNote=document.createElement('small');csvNote.textContent='تنبيه: ملفات CSV للتقارير غير مشفّرة؛ احتفظ بها في مكان خاص.';
+    buttons.append(backup,restore,file,lock);bar.append(title,statusText,buttons,csvNote);
     const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
     window.addEventListener('beforeunload',event=>{if(revision!==savedRevision&&!failed){event.preventDefault();event.returnValue='';}});
   }
@@ -145,6 +146,10 @@ window.RAWAA_WORK_STORAGE = localStorage;
         });
       }else{script.textContent=old.textContent;document.body.append(script);}
     }
+    // The legacy demo JSON export is plaintext. Keep it unavailable in work mode:
+    // only the encrypted backup in the secure status bar should be used.
+    const legacyBackup=$('fin-backup');
+    if(legacyBackup){const legacyBox=legacyBackup.closest('.card');if(legacyBox)legacyBox.hidden=true;}
   }
   function addStyles(){
     const style=document.createElement('style');style.textContent='.work-lock-screen{position:fixed;inset:0;z-index:999999;background:#092e27;display:grid;place-items:center;padding:18px;overflow-y:auto;direction:rtl}.work-lock-panel{box-sizing:border-box;background:#fff;color:#153d32;border-radius:18px;padding:22px;width:100%;max-width:455px;box-shadow:0 20px 60px #0005}.work-lock-panel h2{margin:0 0 10px;font-size:23px}.work-lock-panel p{font-size:13px;color:#536b5e}.work-lock-panel label{display:block;margin:12px 0}.work-lock-panel input{display:block;width:100%;box-sizing:border-box;min-height:46px;font:inherit;border:1px solid #a9c4ae;border-radius:10px;padding:10px}.work-lock-panel button{background:#103e34;color:white;border:0;border-radius:10px;min-height:46px;padding:10px 18px;font-weight:bold;font:inherit;width:100%;cursor:pointer}.work-lock-panel .work-error{color:#aa2c22;font-weight:650}.work-control-bar{max-width:1050px;margin:12px auto;padding:12px 15px;border-radius:14px;background:#e4f2e9;border:1px solid #9dc8b0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;direction:rtl;font-size:13px}.work-control-bar strong{color:#153d32}.work-control-bar span{flex:1 1 230px;font-weight:700}.work-controls{display:flex;gap:7px;flex-wrap:wrap}.work-controls button{border:1px solid #265e49;color:#174837;background:white;padding:8px 10px;border-radius:9px;min-height:42px;font-weight:700;cursor:pointer}@media(max-width:480px){.work-controls{width:100%}.work-controls button{flex:1 1 42%}}';document.head.append(style);
@@ -183,7 +188,8 @@ window.RAWAA_WORK_STORAGE = localStorage;
         }
         unlocked=true;localStorage._observe(persist);
         shield.remove();showStatusBar();setupPeerDetection();
-        await runExistingApp();
+        try { await runExistingApp(); }
+        catch(loadError){showCritical('لم يكتمل تحميل أقسام RAWAA؛ لا تدخل بيانات قبل إعادة فتح التطبيق. '+(loadError.message||''));throw loadError;}
         setStatus('✓ مساحة العمل مفتوحة والسجلات مشفّرة على هذا الجهاز');
       }catch(err){error.textContent=err.message||'تعذر فتح السجلات.';submit.disabled=false;}
       pass.value='';if(confirmation)confirmation.value='';
