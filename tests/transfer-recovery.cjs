@@ -51,7 +51,7 @@ const server=http.createServer((req,res)=>{
   await page.locator('#cloud-manager-change-button').waitFor({timeout:16000});
   await page.locator('#cloud-manager-change-button').click();
   await page.locator('#cloud-manager-new-email').fill('newmanager@gmail.com');
-  await page.evaluate(()=>localStorage.setItem('mock_reads_before_failure','2'));
+  await page.evaluate(()=>window.localStorage.setItem('mock_reads_before_failure','2'));
   const [file]=await Promise.all([
    page.waitForEvent('download',{timeout:16000}),
    page.locator('#cloud-manager-export').click()
