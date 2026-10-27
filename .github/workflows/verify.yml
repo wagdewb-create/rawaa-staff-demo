@@ -21,6 +21,7 @@ jobs:
           node --check cloud-sync.js
           node --check daily-batch.js
           node --check weekly-report.js
+          node --check easy-ui.js
       - name: Verify payroll and staff
         run: |
           node tests/payroll-unit.cjs
@@ -36,6 +37,7 @@ jobs:
           node tests/work-browser.cjs
           node tests/cloud-browser.cjs
           node tests/transfer-recovery.cjs
+          node tests/easy-ui.cjs
       - name: Test iPhone first-party authentication gateway
         run: node tests/first-party.cjs
       - name: Check live Neon Auth loading (no test account created)
