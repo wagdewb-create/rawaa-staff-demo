@@ -602,6 +602,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
   try{
    const row=await initialRow();rev=Number(row.revision);
    isNewEmptyWorkspace=rev===0&&Object.keys(check(row.payload)).length===0;
+   window.RAWAA_CLOUD_WORKSPACE=Object.freeze({isNewEmptyWorkspace,verified:!!user.emailVerified});
    localStorage._load(check(row.payload));
    cloudBar();await loadExistingScripts();
    if(isNewEmptyWorkspace)showNewManagerSetup();
