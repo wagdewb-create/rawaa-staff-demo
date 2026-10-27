@@ -60,6 +60,7 @@
  intro.append(head,hint);
  const overview=make('div',undefined,'rawaa-easy-overview');overview.id='rawaa-easy-overview';
  const shortcuts=make('div',undefined,'rawaa-easy-shortcuts');
+ shortcuts.id='rawaa-easy-shortcuts';
  const quickIds=['employees','attendance','shift-planner','monthly-ledger','bulk-attendance','payroll-review','payslip','daily-report'];
  for(const id of quickIds){
   const row=meta.find(x=>x[0]===id),a=make('a',undefined,'rawaa-easy-shortcut');
