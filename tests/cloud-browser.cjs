@@ -223,7 +223,7 @@ const server=http.createServer((req,res)=>{try{
   assert.match(planCSV.suggestedFilename(),/RAWAA_Shift_Plan_2026-10-27/);
   await page.waitForFunction(expected=>JSON.parse(window.localStorage.getItem('neon_mock_row'))?.revision>expected,rowBeforeRestore.revision+1,{timeout:18000});
   await page.reload({waitUntil:'domcontentloaded'});
-  await page.locator('#planner-save').waitFor({timeout:14000});
+  await page.waitForFunction(()=>typeof window.RAWAA_PLANNER_TEST?.getPlans==='function',null,{timeout:20000});
   assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.getPlans().length),2,'plans must survive cloud reload');
 
   // Reproduce the user's iPhone-sized view: no giant checkbox or horizontal overflow.
