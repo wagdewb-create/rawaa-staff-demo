@@ -125,7 +125,11 @@ const server=http.createServer((request,response)=>{
 
   await page.waitForFunction(()=>{
    const row=JSON.parse(localStorage.getItem('mock_planned_to_actual_neon_row')||'null');
-   return row&&row.revision>=4;
+   if(!row||row.revision<2||!row.payload?.RAWAA_STAFF_SHIFT_PLAN_V1||!row.payload?.RAWAA_DEMO_ATTENDANCE_V12)return false;
+   try{
+    return JSON.parse(row.payload.RAWAA_STAFF_SHIFT_PLAN_V1).length===2 &&
+      JSON.parse(row.payload.RAWAA_DEMO_ATTENDANCE_V12).length===1;
+   }catch{return false;}
   },null,{timeout:20000});
   const cloud=await page.evaluate(()=>JSON.parse(localStorage.getItem('mock_planned_to_actual_neon_row')));
   assert.ok(cloud.payload.RAWAA_STAFF_SHIFT_PLAN_V1,'plan persists in cloud snapshot');
