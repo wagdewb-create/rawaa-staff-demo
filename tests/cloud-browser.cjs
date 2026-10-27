@@ -221,7 +221,7 @@ const server=http.createServer((req,res)=>{try{
   assert.deepEqual(afterPlan,beforePlan,'planning must not alter payroll or attendance');
   const [planCSV]=await Promise.all([page.waitForEvent('download',{timeout:14000}),page.locator('#planner-export').click()]);
   assert.match(planCSV.suggestedFilename(),/RAWAA_Shift_Plan_2026-10-27/);
-  await page.waitForFunction(()=>JSON.parse(window.localStorage.getItem('neon_mock_row'))?.revision>rowBeforeRestore.revision+1,null,{timeout:18000});
+  await page.waitForFunction(expected=>JSON.parse(window.localStorage.getItem('neon_mock_row'))?.revision>expected,rowBeforeRestore.revision+1,{timeout:18000});
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('#planner-save').waitFor({timeout:14000});
   assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.getPlans().length),2,'plans must survive cloud reload');
