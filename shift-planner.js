@@ -147,7 +147,12 @@
     const line=document.createElement('div');line.className='planner-shift';
     const period=document.createElement('span');period.textContent=shift.start+'–'+shift.end+(shift.nextDay?' (+1 يوم)':'')+(shift.note?' · '+shift.note:'');
     line.append(period);
-    if(!locked)line.append(button('تعديل','edit',shift.id),button('حذف','delete',shift.id));
+    const recordedExactly=attendance.getEntries().some(x=>x.employeeId===shift.employeeId&&x.date===shift.date&&x.start===shift.start&&x.end===shift.end&&x.nextDay===shift.nextDay);
+    if(!locked){
+     if(recordedExactly)line.append(document.createTextNode(' · مسجلة بالفعل'));
+     else if(peopleById.get(shift.employeeId)?.status==='active')line.append(button('مراجعة الحضور','prefill',shift.id));
+     line.append(button('تعديل','edit',shift.id),button('حذف','delete',shift.id));
+    }
     schedule.append(line);
    }
    tr.append(schedule);
@@ -193,6 +198,17 @@
   $('planner-form').scrollIntoView({block:'nearest',behavior:'smooth'});
   msg('أنت تعدّل موعدًا مخططًا، لا سجل حضور. التعديل لن يغيّر الراتب.');
  }
+ function prefillAttendance(id){
+  if(isLocked()||storageError)return msg('لا يمكن نقل خطة الدوام إلى نموذج الحضور قبل اكتمال فتح الحساب واستعادة سجلات الموظفين.',true);
+  const plan=plans.find(x=>x.id===id);
+  if(!plan)return msg('هذه الوردية المخططة غير موجودة.',true);
+  const person=getPeople().find(p=>p.id===plan.employeeId&&p.status==='active');
+  if(!person)return msg('لا يمكن تسجيل حضور لموظف مؤرشف أو غير موجود.',true);
+  if(typeof attendance.prefillFromPlan!=='function')return msg('تعذر فتح نموذج الحضور. حدّث الصفحة ثم حاول مجددًا.',true);
+  const result=attendance.prefillFromPlan({...plan});
+  if(!result?.ok)return msg(result?.error||'تعذر تجهيز الوردية للمراجعة.',true);
+  msg('نُسخت المواعيد المقترحة إلى نموذج الحضور فقط. عدّل الأوقات الفعلية وراجع الأجر، ثم أكّد الحفظ؛ لم تُضف وردية مدفوعة بعد.');
+ }
  function remove(id){
   if(isLocked()||storageError)return;
   const found=plans.find(p=>p.id===id);if(!found)return;
@@ -230,6 +246,7 @@
   const target=e.target.closest('button[data-action]');if(!target)return;
   if(target.dataset.action==='edit')edit(target.dataset.id);
   if(target.dataset.action==='delete')remove(target.dataset.id);
+  if(target.dataset.action==='prefill')prefillAttendance(target.dataset.id);
  });
  $('planner-week-start').addEventListener('change',render);
  $('planner-filter').addEventListener('change',render);
