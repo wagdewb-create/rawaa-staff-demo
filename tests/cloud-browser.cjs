@@ -186,6 +186,46 @@ const server=http.createServer((req,res)=>{try{
   assert.deepEqual(restored.payload,decoded.entries,'new manager cloud data must exactly match encrypted export');
   assert.match(await page.locator('#cloud-transfer-verified').innerText(),/المدير القديم|سحب صلاحيات|إمكانية الدخول/);
 
+  // Plan future shifts without creating attendance or payroll transactions.
+  await page.locator('#planner-save').waitFor({timeout:16000});
+  const beforePlan=await page.evaluate(()=>({
+   attendance:window.RAWAA_CLOUD_STORAGE.getItem('RAWAA_DEMO_ATTENDANCE_V12'),
+   payments:window.RAWAA_CLOUD_STORAGE.getItem('RAWAA_DEMO_LEDGER_V13')
+  }));
+  assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.getPlans().length),0,'no automatic plan seeding');
+  await page.locator('#planner-day').fill('2026-10-27');
+  await page.locator('#planner-start').fill('20:00');
+  await page.locator('#planner-end').fill('06:00');
+  await page.locator('#planner-next-day').check();
+  await page.locator('#planner-save').click();
+  await page.waitForFunction(()=>window.RAWAA_PLANNER_TEST.getPlans().length===1);
+  assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.interval(window.RAWAA_PLANNER_TEST.getPlans()[0]).minutes),600);
+  await page.locator('#planner-day').fill('2026-10-28');
+  await page.locator('#planner-start').fill('05:00');
+  await page.locator('#planner-end').fill('08:00');
+  await page.locator('#planner-save').click();
+  assert.match(await page.locator('#planner-feedback').innerText(),/متداخلتان/);
+  assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.getPlans().length),1);
+  await page.locator('#planner-start').fill('07:00');
+  await page.locator('#planner-end').fill('11:00');
+  await page.locator('#planner-save').click();
+  await page.waitForFunction(()=>window.RAWAA_PLANNER_TEST.getPlans().length===2);
+  await page.locator('#planner-week-start').fill('2026-10-27');
+  const planned=await page.evaluate(()=>window.RAWAA_PLANNER_TEST.report().stats);
+  assert.equal(planned.plans,2);assert.equal(planned.plannedHours,14);
+  assert.equal(planned.plannedWithoutRecord,2);
+  const afterPlan=await page.evaluate(()=>({
+   attendance:window.RAWAA_CLOUD_STORAGE.getItem('RAWAA_DEMO_ATTENDANCE_V12'),
+   payments:window.RAWAA_CLOUD_STORAGE.getItem('RAWAA_DEMO_LEDGER_V13')
+  }));
+  assert.deepEqual(afterPlan,beforePlan,'planning must not alter payroll or attendance');
+  const [planCSV]=await Promise.all([page.waitForEvent('download',{timeout:14000}),page.locator('#planner-export').click()]);
+  assert.match(planCSV.suggestedFilename(),/RAWAA_Shift_Plan_2026-10-27/);
+  await page.waitForFunction(()=>JSON.parse(window.localStorage.getItem('neon_mock_row'))?.revision>rowBeforeRestore.revision+1,null,{timeout:18000});
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('#planner-save').waitFor({timeout:14000});
+  assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.getPlans().length),2,'plans must survive cloud reload');
+
   // Reproduce the user's iPhone-sized view: no giant checkbox or horizontal overflow.
   const phone=await browser.newContext({viewport:{width:375,height:667},deviceScaleFactor:3,isMobile:true,hasTouch:true});
   await phone.addInitScript(()=>{
