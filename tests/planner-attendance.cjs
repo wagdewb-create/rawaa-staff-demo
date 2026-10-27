@@ -123,14 +123,28 @@ const server=http.createServer((request,response)=>{
   assert.match(await page.locator('#planner-feedback').innerText(),/تتداخل|تعارض/,'duplicate and overlapping actual shifts are rejected');
   assert.equal(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries().length),1);
 
-  await page.waitForFunction(()=>{
-   const row=JSON.parse(localStorage.getItem('mock_planned_to_actual_neon_row')||'null');
-   if(!row||row.revision<2||!row.payload?.RAWAA_STAFF_SHIFT_PLAN_V1||!row.payload?.RAWAA_DEMO_ATTENDANCE_V12)return false;
-   try{
-    return JSON.parse(row.payload.RAWAA_STAFF_SHIFT_PLAN_V1).length===2 &&
-      JSON.parse(row.payload.RAWAA_DEMO_ATTENDANCE_V12).length===1;
-   }catch{return false;}
-  },null,{timeout:20000});
+  try{
+   await page.waitForFunction(()=>{
+    const row=JSON.parse(localStorage.getItem('mock_planned_to_actual_neon_row')||'null');
+    if(!row||row.revision<2||!row.payload?.RAWAA_STAFF_SHIFT_PLAN_V1||!row.payload?.RAWAA_DEMO_ATTENDANCE_V12)return false;
+    try{
+     return JSON.parse(row.payload.RAWAA_STAFF_SHIFT_PLAN_V1).length===2 &&
+       JSON.parse(row.payload.RAWAA_DEMO_ATTENDANCE_V12).length===1;
+    }catch{return false;}
+   },null,{timeout:9000});
+  }catch(error){
+   const diagnostic=await page.evaluate(()=>({
+    mock:JSON.parse(localStorage.getItem('mock_planned_to_actual_neon_row')||'null'),
+    virtual:window.RAWAA_CLOUD_STORAGE._snapshot(),
+    cloud:document.querySelector('#cloud-control-bar span')?.textContent,
+    block:document.querySelector('#cloud-sync-lock')?.textContent?.slice(0,180)
+   }));
+   throw new Error('Cloud sync verification failed in fake test: '+JSON.stringify({
+    revision:diagnostic.mock?.revision,serverKeys:Object.keys(diagnostic.mock?.payload||{}),
+    virtualKeys:Object.keys(diagnostic.virtual||{}),cloud:diagnostic.cloud,block:diagnostic.block,
+    serverPlan:diagnostic.mock?.payload?.RAWAA_STAFF_SHIFT_PLAN_V1?.length,serverAttendance:diagnostic.mock?.payload?.RAWAA_DEMO_ATTENDANCE_V12?.length
+   }));
+  }
   const cloud=await page.evaluate(()=>JSON.parse(localStorage.getItem('mock_planned_to_actual_neon_row')));
   assert.ok(cloud.payload.RAWAA_STAFF_SHIFT_PLAN_V1,'plan persists in cloud snapshot');
   assert.ok(cloud.payload.RAWAA_DEMO_ATTENDANCE_V12,'confirmed actual persists independently');
