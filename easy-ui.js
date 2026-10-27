@@ -100,6 +100,7 @@
  pickerSearch.placeholder='ابحث عن القسم';pickerSearch.setAttribute('aria-label','بحث في الأقسام');
  sheet.append(pickerSearch);
  const pickerLinks=make('div',undefined,'rawaa-easy-picker-links');
+ pickerLinks.id='rawaa-easy-picker-links';
  const orderedIds=meta.map(x=>x[0]).filter(id=>ids.has(id));
  for(const id of orderedIds){
   const a=make('a',names.get(id),'rawaa-easy-picker-item');
