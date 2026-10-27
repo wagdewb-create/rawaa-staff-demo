@@ -66,7 +66,7 @@ const server=http.createServer((req,res)=>{try{
   assert.equal(await page.getByRole('button',{name:'استعادة نسخة احتياطية'}).count(),1,'restore action available');
   // Even when the original transfer was opened in a different Safari tab,
   // a new and empty manager workspace must show its setup checklist.
-  assert.equal(await page.locator('#cloud-manager-setup').count(),1,'empty workspace shows onboarding guidance');
+  assert.equal(await page.locator('#cloud-manager-setup').count(),1,'empty workspace shows onboarding guidance. Browser errors: '+JSON.stringify(errors)+'; lock: '+(await page.locator('#cloud-sync-lock').allInnerTexts()).join('; '));
   assert.match(await page.locator('#cloud-manager-setup').innerText(),/مساحة عمل فارغة|بيانات الموظفين/);
   assert.equal(await page.locator('#cloud-manager-setup-restore').isDisabled(),true,'no employee import before email verification');
   assert.equal(await page.locator('#fin-backup').isHidden(),true,'legacy unencrypted backup must be unavailable in cloud workspace');
