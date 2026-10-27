@@ -49,7 +49,7 @@ const server=http.createServer((req,res)=>{
   page.on('pageerror',e=>errors.push(e.message));
   page.on('dialog',dialog=>decisions.length&&decisions.shift()===false?dialog.dismiss():dialog.accept());
   await page.goto(base+'/cloud.html?rawaa=217#daily-operations',{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>typeof window.RAWAA_DAILY_OPERATIONS_TEST?.getRows==='function',null,{timeout:25000});
+  await page.waitForFunction(()=>typeof window.RAWAA_DAILY_OPERATIONS_TEST?.getRows==='function'&&typeof window.RAWAA_EASY_UI_TEST?.getSection==='function',null,{timeout:25000});
   assert.equal(await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.getSection()),'daily-operations');
   assert.equal(await page.locator('#daily-operations').isVisible(),true);
   assert.equal(await page.locator('#rawaa-mobile-tabs a[href="#daily-operations"]').isVisible(),true,'daily follow-up is one tap on iPhone');
@@ -171,7 +171,7 @@ const server=http.createServer((req,res)=>{
    catch{return false;}
   },null,{timeout:20000});
   await page.reload({waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>typeof window.RAWAA_DAILY_OPERATIONS_TEST?.getRows==='function',null,{timeout:20000});
+  await page.waitForFunction(()=>typeof window.RAWAA_DAILY_OPERATIONS_TEST?.getRows==='function'&&typeof window.RAWAA_EASY_UI_TEST?.getSection==='function',null,{timeout:20000});
   await page.locator('#operations-date').fill('2026-10-28');
   assert.equal(await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows().summary.recorded),1,'daily board and records survive cloud reload');
   assert.equal(await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows().summary.unplanned),1);
