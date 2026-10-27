@@ -6,6 +6,7 @@
 .rawaa-easy-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}
 .rawaa-easy-switch{color:#164c3c;background:#f2f7f2;border:1px solid #bfdbcb;border-radius:11px;padding:9px 12px;min-height:42px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:normal}
 .rawaa-easy-view main>section:not(.rawaa-section-active):not(.rawaa-easy-home){display:none!important}
+.rawaa-easy-view main>section#dashboard{display:none!important} /* home cards replace the long detailed dashboard */
 .rawaa-easy-home[hidden],.rawaa-easy-backdrop[hidden],.rawaa-easy-sheet[hidden]{display:none!important}
 .rawaa-easy-home{margin-top:14px!important;overflow-wrap:anywhere}
 .rawaa-easy-hero{background:linear-gradient(120deg,#0b3b31,#26604d);border-radius:18px;color:#fff;padding:19px 22px}
