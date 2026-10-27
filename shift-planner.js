@@ -184,7 +184,7 @@
    localStorage.setItem(KEY,json);
    plans=updated;
    const week=plannerRange();if(!week||date<week.start||date>week.end)$('planner-week-start').value=date;
-   reset();render();msg('✓ حُفظ موعد الدوام المخطط. انتظر ظهور تأكيد المزامنة السحابية؛ هذا ليس سجل حضور فعلي.');
+   reset();render();document.dispatchEvent(new Event('rawaa:planner-changed'));msg('✓ حُفظ موعد الدوام المخطط. انتظر ظهور تأكيد المزامنة السحابية؛ هذا ليس سجل حضور فعلي.');
   }catch(e){msg('فشل حفظ الخطة: '+String(e.message),true);}
  }
  function edit(id){
@@ -215,7 +215,7 @@
   if(!confirm('حذف موعد الدوام المخطط فقط؟ سجلات الحضور الفعلية والرواتب لن تتغير.'))return;
   const updated=plans.filter(p=>p.id!==id);
   try{localStorage.setItem(KEY,JSON.stringify(updated));plans=updated;
-   if(editingId===id)reset();render();msg('حُذف موعد التخطيط فقط. سجلات الرواتب والحضور لم تتغير.');
+   if(editingId===id)reset();render();document.dispatchEvent(new Event('rawaa:planner-changed'));msg('حُذف موعد التخطيط فقط. سجلات الرواتب والحضور لم تتغير.');
   }catch(e){msg('تعذر حذف الموعد: '+String(e.message),true);}
  }
  function csvValue(value){
