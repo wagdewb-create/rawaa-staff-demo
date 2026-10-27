@@ -58,7 +58,7 @@ const server=http.createServer((request,response)=>{
    return accept?dialog.accept():dialog.dismiss();
   });
   await page.goto(url+'/cloud.html?rawaa=216',{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>typeof window.RAWAA_PLANNER_TEST?.getPlans==='function',null,{timeout:25000});
+  await page.waitForFunction(()=>typeof window.RAWAA_PLANNER_TEST?.getPlans==='function'&&typeof window.RAWAA_EASY_UI_TEST?.goTo==='function',null,{timeout:25000});
   assert.equal(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries().length),0);
   await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.goTo('shift-planner'));
   const one=async (date,start,end)=>{
@@ -149,7 +149,7 @@ const server=http.createServer((request,response)=>{
   assert.ok(cloud.payload.RAWAA_STAFF_SHIFT_PLAN_V1,'plan persists in cloud snapshot');
   assert.ok(cloud.payload.RAWAA_DEMO_ATTENDANCE_V12,'confirmed actual persists independently');
   await page.reload({waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>typeof window.RAWAA_PLANNER_TEST?.getPlans==='function',null,{timeout:24000});
+  await page.waitForFunction(()=>typeof window.RAWAA_PLANNER_TEST?.getPlans==='function'&&typeof window.RAWAA_EASY_UI_TEST?.goTo==='function',null,{timeout:24000});
   assert.equal(await page.evaluate(()=>window.RAWAA_PLANNER_TEST.getPlans().length),2,'plans persist after reload');
   assert.equal(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries().length),1,'actual attendance persists after reload');
   assert.deepEqual(errors,[],errors.join('; '));
