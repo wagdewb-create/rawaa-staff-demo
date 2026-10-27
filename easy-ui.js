@@ -22,6 +22,7 @@
   ['attendance','تسجيل الدوام','◷','الحضور والانصراف'],
   ['bulk-attendance','الدوام الجماعي','▦','تسجيل أكثر من موظف'],
   ['shift-planner','تخطيط الورديات','▤','جدول أسبوعي مرن'],
+  ['daily-operations','متابعة دوام اليوم','◷','حالات ورديات اليوم للمراجعة'],
   ['monthly-ledger','الحساب الشهري','₪','الراتب والسحوبات'],
   ['payroll-review','مراجعة الرواتب','✓','مراجعة قبل الصرف'],
   ['payslip','قسيمة الراتب','▧','كشف لكل موظف'],
@@ -61,7 +62,7 @@
  const overview=make('div',undefined,'rawaa-easy-overview');overview.id='rawaa-easy-overview';
  const shortcuts=make('div',undefined,'rawaa-easy-shortcuts');
  shortcuts.id='rawaa-easy-shortcuts';
- const quickIds=['employees','attendance','shift-planner','monthly-ledger','bulk-attendance','payroll-review','payslip','daily-report'];
+ const quickIds=['daily-operations','employees','attendance','shift-planner','monthly-ledger','bulk-attendance','payroll-review','payslip','daily-report'];
  for(const id of quickIds){
   const row=meta.find(x=>x[0]===id),a=make('a',undefined,'rawaa-easy-shortcut');
   a.href='#'+id;a.dataset.easyTarget=id;
@@ -80,7 +81,7 @@
  searchWrapper.append(search);nav.insertBefore(searchWrapper,nav.firstChild);
  const bottom=make('div',undefined,'rawaa-easy-mobile-tabs');bottom.id='rawaa-mobile-tabs';
  bottom.setAttribute('aria-label','التنقل السريع');
- const bottomItems=[['dashboard','الرئيسية','⌂'],['employees','الموظفون','♙'],['attendance','الدوام','◷'],['monthly-ledger','الرواتب','₪']];
+ const bottomItems=[['dashboard','الرئيسية','⌂'],['daily-operations','اليوم','◷'],['employees','الموظفون','♙'],['monthly-ledger','الرواتب','₪']];
  for(const [id,label,symbol] of bottomItems){
   const a=make('a',undefined,'rawaa-easy-tab');a.href='#'+id;a.dataset.easyTarget=id;
   a.append(make('span',symbol),make('small',label));bottom.append(a);

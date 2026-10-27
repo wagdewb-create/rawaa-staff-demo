@@ -22,6 +22,7 @@ jobs:
           node --check daily-batch.js
           node --check weekly-report.js
           node --check easy-ui.js
+          node --check daily-operations.js
       - name: Verify payroll and staff
         run: |
           node tests/payroll-unit.cjs
@@ -36,6 +37,7 @@ jobs:
         run: |
           node tests/easy-ui.cjs
           node tests/planner-attendance.cjs
+          node tests/daily-operations.cjs
           node tests/work-browser.cjs
           node tests/cloud-browser.cjs
           node tests/transfer-recovery.cjs
