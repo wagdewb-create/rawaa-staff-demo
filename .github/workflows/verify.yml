@@ -21,6 +21,7 @@ jobs:
           node --check cloud-sync.js
           node --check daily-batch.js
           node --check weekly-report.js
+          node --check easy-ui.js
       - name: Verify payroll and staff
         run: |
           node tests/payroll-unit.cjs
@@ -33,6 +34,7 @@ jobs:
           npm install --no-save playwright@1.56.1
       - name: Test encrypted iPhone-compatible work flow in Chromium
         run: |
+          node tests/easy-ui.cjs
           node tests/work-browser.cjs
           node tests/cloud-browser.cjs
           node tests/transfer-recovery.cjs

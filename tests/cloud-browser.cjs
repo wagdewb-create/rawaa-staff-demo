@@ -63,6 +63,10 @@ const server=http.createServer((req,res)=>{try{
   page.on('dialog',dialog=>dialog.type()==='prompt'?dialog.accept('RAWAA-backup-passphrase-2026'):dialog.accept());
   await page.getByRole('button',{name:'إنشاء حساب لأول مرة'}).click();
   await page.locator('#staff-manage-cards .staff-manage-card').first().waitFor({timeout:16000});
+  // Legacy end-to-end workflow tests need all sections available in one
+  // scroll. Production users get simple view by default with this opt-out.
+  await page.locator('#rawaa-view-toggle').click();
+  assert.equal(await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.getMode()),'full','legacy test uses available full view');
   assert.equal(await page.getByRole('button',{name:'استعادة نسخة احتياطية'}).count(),1,'restore action available');
   // Even when the original transfer was opened in a different Safari tab,
   // a new and empty manager workspace must show its setup checklist.
@@ -117,6 +121,7 @@ const server=http.createServer((req,res)=>{try{
   await second.goto(base+'/cloud.html',{waitUntil:'domcontentloaded'});
   await second.locator('#staff-manage-cards .staff-manage-card strong').filter({hasText:'مشرف السحابة'}).first().waitFor({timeout:15000});
   assert.equal(await second.locator('#cloud-login').count(),0,'same account loads on second device');
+  await second.locator('#rawaa-view-toggle').click();
   await second.locator('#staff-manage-cards [data-rename-staff="001"]').click();
   await second.locator('.staff-inline-rename input').fill('مشرف النسخة الثانية');
   await second.locator('.staff-inline-rename button[type="submit"]').click();

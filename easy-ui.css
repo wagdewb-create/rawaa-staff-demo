@@ -1,0 +1,99 @@
+/* RAWAA Cloud 2.15 | Adaptive iPhone + computer presentation */
+.rawaa-easy-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fff;border:1px solid #dce7dd;border-radius:16px;padding:13px 16px;margin-top:17px;box-shadow:0 5px 20px #173f3310;position:sticky;top:0;z-index:11;min-width:0}
+.rawaa-easy-crumb{display:flex;flex-direction:column;min-width:0;line-height:1.3;gap:4px}
+.rawaa-easy-crumb strong{font-size:clamp(17px,2vw,24px);font-weight:800;overflow-wrap:anywhere}
+.rawaa-easy-crumb small{font-size:11px;color:#688079}
+.rawaa-easy-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.rawaa-easy-switch{color:#164c3c;background:#f2f7f2;border:1px solid #bfdbcb;border-radius:11px;padding:9px 12px;min-height:42px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;white-space:normal}
+.rawaa-easy-view main>section:not(.rawaa-section-active):not(.rawaa-easy-home){display:none!important}
+.rawaa-easy-view main>section#dashboard{display:none!important} /* home cards replace the long detailed dashboard */
+.rawaa-easy-home[hidden],.rawaa-easy-backdrop[hidden],.rawaa-easy-sheet[hidden]{display:none!important}
+.rawaa-easy-home{margin-top:14px!important;overflow-wrap:anywhere}
+.rawaa-easy-hero{background:linear-gradient(120deg,#0b3b31,#26604d);border-radius:18px;color:#fff;padding:19px 22px}
+.rawaa-easy-hero h2{font-size:clamp(21px,2.5vw,30px);margin:0 0 6px;border:0;padding:0;color:#fff}
+.rawaa-easy-hero p{color:#ecf5ef;font-size:14px;margin:0}
+.rawaa-easy-home>h3{font-size:17px;margin:20px 0 12px;color:#1c493d}
+.rawaa-easy-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rawaa-easy-shortcut{display:flex;align-items:center;gap:13px;border:1px solid #dce5dd;background:#fff;box-shadow:0 4px 18px #133d2510;border-radius:15px;padding:17px 13px;min-width:0;min-height:86px;text-decoration:none;color:#173e34}
+.rawaa-easy-shortcut:active{transform:translateY(1px)}
+.rawaa-easy-shortcut-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;background:#eaf4eb;border-radius:11px;color:#13583e;font-size:25px;font-weight:800}
+.rawaa-easy-shortcut-copy{display:flex;flex-direction:column;line-height:1.4;min-width:0;gap:3px}
+.rawaa-easy-shortcut-copy strong{font-size:14px;font-weight:800;overflow-wrap:anywhere}
+.rawaa-easy-shortcut-copy small{font-size:11px;color:#65796c;overflow-wrap:anywhere}
+.rawaa-easy-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+.rawaa-easy-metric{background:#fff;border:1px solid #dce7dd;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;min-width:0}
+.rawaa-easy-metric small{font-size:11px;color:#687c71}
+.rawaa-easy-metric strong{font-size:clamp(18px,2.3vw,26px);font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.rawaa-easy-empty{grid-column:1/-1;border:1px solid #e8cf9e;background:#fff5db;border-radius:12px;padding:14px;line-height:1.7;margin:0}
+.rawaa-easy-data-note{grid-column:1/-1;color:#62766b;font-size:12px;margin:0}
+.rawaa-easy-nav-search{display:none}
+.rawaa-easy-nav-search span{font-size:12px;color:#d8e9e1}
+.rawaa-easy-nav-search input{min-height:42px;font-size:14px}
+.rawaa-easy-sheet,.rawaa-easy-backdrop,.rawaa-easy-mobile-tabs{display:none}
+.rawaa-easy-sheet-open{overflow:hidden}
+.rawaa-all-view #rawaa-easy-toolbar{position:relative;top:auto}
+.rawaa-all-view #rawaa-easy-home{display:none!important}
+.rawaa-easy-view #shift-planner{scroll-margin-top:75px}
+.rawaa-easy-view #rawaa-mobile-tabs a:focus-visible,.rawaa-easy-view #rawaa-mobile-tabs button:focus-visible,.rawaa-easy-picker-links a:focus-visible{outline:3px solid #c7a36a;outline-offset:1px}
+.rawaa-easy-view main>.alert{display:none}
+@media(min-width:720px){
+ .rawaa-easy-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .rawaa-easy-overview{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(min-width:1000px){
+ body.rawaa-easy-view>header,body.rawaa-easy-view>aside.alert,body.rawaa-easy-view>main,body.rawaa-easy-view>footer,body.rawaa-easy-view>.rawaa-cloud-bar{margin-inline-start:260px}
+ body.rawaa-easy-view>header{padding:20px 22px}
+ body.rawaa-easy-view>header h1{font-size:26px}
+ body.rawaa-easy-view>header .moon{width:44px;height:44px}
+ body.rawaa-easy-view>aside.alert{display:none}
+ body.rawaa-easy-view>main{max-width:none;margin-inline-end:0;padding:0 clamp(18px,3vw,42px) 85px}
+ body.rawaa-easy-view>.rawaa-cloud-bar{max-width:none;box-sizing:border-box}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"]{position:fixed;inset-inline-start:0;inset-inline-end:auto;top:0;bottom:0;width:244px;height:100dvh;z-index:30;overflow-y:auto;overflow-x:hidden;white-space:normal;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:5px;padding:20px 12px 28px;background:#103e34;box-shadow:4px 0 22px #0f332a27;scrollbar-width:thin}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"]::before{content:"RAWAA  ·  رواء";display:block;text-align:center;color:#f8e7c6;font-size:18px;font-weight:900;padding:0 0 13px;margin-bottom:4px;border-bottom:1px solid #ffffff33}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"] a{display:flex;background:transparent;border-radius:11px;justify-content:flex-start;min-height:39px;padding:8px 11px;white-space:normal;word-break:break-word;color:#eaf4ed;font-size:13px}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"] a:hover{background:#ffffff15}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"] a.rawaa-easy-selected{background:#d2ebdc;color:#113d31}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"] a[href="./index.html"]{display:none}
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"] a[hidden]{display:none!important}
+ body.rawaa-easy-view nav .rawaa-easy-nav-search{display:flex;flex-direction:column;gap:6px;padding:5px 3px;margin-bottom:9px}
+ body.rawaa-easy-view nav .rawaa-easy-nav-search input{background:#fff;border-color:#92b6a2}
+ .rawaa-easy-view #rawaa-mobile-tabs{display:none}
+}
+@media(max-width:999px){
+ body.rawaa-easy-view nav[aria-label="أقسام رواء"]{display:none}
+ body.rawaa-easy-view>header{padding:19px 12px 16px}
+ body.rawaa-easy-view>header h1{font-size:22px;margin:5px 0}
+ body.rawaa-easy-view>header .moon{width:40px;height:40px;font-size:22px}
+ body.rawaa-easy-view>header p{font-size:12px}
+ body.rawaa-easy-view>aside.alert{display:none}
+ body.rawaa-easy-view>main{padding:0 13px calc(94px + env(safe-area-inset-bottom));max-width:900px}
+ .rawaa-easy-view .rawaa-easy-toolbar{padding:10px 12px;top:0}
+ .rawaa-easy-view #rawaa-mobile-tabs{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;justify-content:space-around;align-items:stretch;gap:2px;background:#fff;border-top:1px solid #cee0d3;box-shadow:0 -4px 20px #113c2e18;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+ #rawaa-mobile-tabs .rawaa-easy-tab{color:#526f61;display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;gap:0;min-width:0;min-height:55px;background:transparent;border:0;border-radius:12px;text-decoration:none;font:inherit;cursor:pointer}
+ #rawaa-mobile-tabs .rawaa-easy-tab span{font-size:22px;line-height:1.2}
+ #rawaa-mobile-tabs .rawaa-easy-tab small{font-size:10px;font-weight:750;color:inherit;white-space:nowrap}
+ #rawaa-mobile-tabs .rawaa-easy-tab.rawaa-easy-selected{background:#e8f3eb;color:#12543d}
+ .rawaa-easy-backdrop{position:fixed;display:block;inset:0;z-index:95;background:#102b24a6}
+ .rawaa-easy-sheet{display:flex;position:fixed;z-index:96;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));max-height:min(80dvh,760px);overflow:auto;flex-direction:column;gap:12px;border-radius:19px;background:#fff;box-shadow:0 15px 60px #0004;padding:16px;direction:rtl}
+ .rawaa-easy-sheet-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+ .rawaa-easy-sheet-header strong{font-size:20px}
+ .rawaa-easy-close{font:inherit;border-radius:9px;border:1px solid #c0d7c8;background:#f4f8f5;color:#153f31;padding:7px 11px;min-height:41px;cursor:pointer}
+ #rawaa-easy-picker-search{width:100%;font-size:16px;min-height:46px}
+ .rawaa-easy-picker-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;overflow-y:auto;padding:2px}
+ .rawaa-easy-picker-item{display:flex;align-items:center;justify-content:center;min-height:53px;text-align:center;text-decoration:none;color:#153d31;background:#f1f7f2;border:1px solid #d2e1d6;border-radius:11px;padding:7px 9px;font-weight:700;font-size:13px;overflow-wrap:anywhere}
+ .rawaa-easy-picker-item.rawaa-easy-selected{background:#dcefe0}
+ .rawaa-easy-picker-item[hidden]{display:none!important}
+}
+@media(max-width:420px){
+ .rawaa-easy-shortcuts{gap:9px}
+ .rawaa-easy-shortcut{padding:10px;min-height:75px;gap:8px}
+ .rawaa-easy-shortcut-icon{height:34px;width:34px;flex-basis:34px;font-size:20px}
+ .rawaa-easy-switch{font-size:12px;padding:7px 9px}
+ .rawaa-easy-overview{gap:7px}
+ .rawaa-easy-metric{padding:9px}
+}
+@media print{
+ body.rawaa-easy-view main>section:not(#payslip){display:none!important}
+ body.rawaa-easy-view #payslip{display:block!important}
+ #rawaa-easy-toolbar,#rawaa-easy-home,#rawaa-mobile-tabs,#rawaa-easy-more-dialog,#rawaa-easy-backdrop{display:none!important}
+}
