@@ -35,6 +35,7 @@ jobs:
       - name: Test encrypted iPhone-compatible work flow in Chromium
         run: |
           node tests/easy-ui.cjs
+          node tests/planner-attendance.cjs
           node tests/work-browser.cjs
           node tests/cloud-browser.cjs
           node tests/transfer-recovery.cjs
