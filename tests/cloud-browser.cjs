@@ -121,6 +121,7 @@ const server=http.createServer((req,res)=>{try{
   await second.goto(base+'/cloud.html',{waitUntil:'domcontentloaded'});
   await second.locator('#staff-manage-cards .staff-manage-card strong').filter({hasText:'مشرف السحابة'}).first().waitFor({timeout:15000});
   assert.equal(await second.locator('#cloud-login').count(),0,'same account loads on second device');
+  await second.locator('#rawaa-view-toggle').click();
   await second.locator('#staff-manage-cards [data-rename-staff="001"]').click();
   await second.locator('.staff-inline-rename input').fill('مشرف النسخة الثانية');
   await second.locator('.staff-inline-rename button[type="submit"]').click();
