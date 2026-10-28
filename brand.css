@@ -1,0 +1,113 @@
+/* RAWAA 2.22 — visual identity only; print layouts retain their existing rules. */
+@media screen {
+ body.rawaa-brand{--deep:#103e34;--gold:#b68c51;--bg:#f5f3ed;--ink:#163f35;--muted:#64746c;--border:#e0e5dd;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}
+ body.rawaa-brand:has(#cloud-login),body.rawaa-brand:has(#cloud-loading){overflow:hidden}
+ #cloud-login.rawaa-cloud-overlay{padding:0;background:#f5f3ed;display:block;overscroll-behavior:contain}
+ #cloud-login .rawaa-auth-layout{display:grid;grid-template-columns:1fr 1fr;min-height:100%;width:100%;direction:rtl}
+ #cloud-login .rawaa-auth-story{position:relative;isolation:isolate;overflow:hidden;background:#103e34;color:#f6f2e7;padding:clamp(36px,6vw,88px);display:flex;flex-direction:column;justify-content:space-between;gap:48px;min-width:0}
+ #cloud-login .rawaa-auth-story::before,#cloud-login .rawaa-auth-story::after{content:"";position:absolute;z-index:-1;pointer-events:none;border:1px solid #c4a77138;border-radius:48% 48% 0 0;transform:rotate(-18deg);width:380px;height:590px;left:-130px;bottom:-250px}
+ #cloud-login .rawaa-auth-story::after{width:460px;height:670px;left:-168px;bottom:-285px}
+ #cloud-login .rawaa-auth-wordmark{display:flex;align-items:center;gap:16px}
+ #cloud-login .rawaa-auth-moon{font-family:Georgia,serif;color:#d2b47e;font-size:50px;line-height:1;display:grid;place-items:center;width:68px;height:68px;border:1px solid #c4a77165;border-radius:24px 24px 13px 13px}
+ #cloud-login .rawaa-auth-name{display:flex;flex-direction:column;gap:2px;line-height:1.3}
+ #cloud-login .rawaa-auth-name strong{font-size:44px;font-weight:700}
+ #cloud-login .rawaa-auth-name small{font-size:10px;letter-spacing:.3em;color:#d5bf97}
+ #cloud-login .rawaa-auth-story-copy{max-width:460px}
+ #cloud-login .rawaa-auth-eyebrow{display:block;color:#d5bf97;font-size:13px;margin-bottom:20px;font-weight:600}
+ #cloud-login .rawaa-auth-story h1{font-size:clamp(34px,3.8vw,58px);line-height:1.55;letter-spacing:-1px;font-weight:650;margin:0 0 22px;white-space:pre-line}
+ #cloud-login .rawaa-auth-story p{color:#c9d9d1;font-size:16px;line-height:1.9;margin:0;max-width:350px}
+ #cloud-login .rawaa-auth-story-footer{display:flex;align-items:center;gap:18px;border-top:1px solid #ffffff24;padding-top:22px;color:#d3e0d8;font-size:13px;flex-wrap:wrap}
+ #cloud-login .rawaa-auth-story-footer span+span::before{content:"/";color:#bba376;margin-inline-end:18px}
+ #cloud-login .rawaa-auth-panel.rawaa-cloud-dialog{align-self:center;justify-self:center;background:transparent;box-shadow:none;border-radius:0;width:100%;max-width:488px;padding:48px 44px;color:#163f35}
+ #cloud-login .rawaa-auth-kicker{display:block;font-size:12px;letter-spacing:.06em;color:#7e6b48;margin-bottom:16px;font-weight:650}
+ #cloud-login .rawaa-auth-panel h2{border:0;padding:0;margin:0 0 12px;font-size:34px;line-height:1.4;font-weight:700}
+ #cloud-login .rawaa-auth-panel>p{font-size:14px;line-height:1.9;color:#66766d;margin:0 0 30px}
+ #cloud-login form label{font-size:14px;font-weight:650;color:#21483d;margin-top:20px}
+ #cloud-login form input:not([type="checkbox"]){background:#fffefb;border:1px solid #cdd7cd;border-radius:12px;padding:13px 15px;min-height:54px;margin:9px 0 0;font-size:16px;line-height:1.5;box-shadow:0 2px 3px #103e3403;transition:border-color .15s,box-shadow .15s;direction:ltr;text-align:left}
+ #cloud-login form input:focus{outline:none;border-color:#397960;box-shadow:0 0 0 3px #39796020}
+ #cloud-login form input::placeholder{color:#88938b;font-size:14px}
+ #cloud-login .rawaa-password-field{position:relative;min-width:0}
+ #cloud-login .rawaa-password-field input{padding-inline-end:76px!important}
+ #cloud-login #cloud-password-toggle{position:absolute;inset-inline-start:5px;top:5px;margin:0;min-height:44px;min-width:64px;padding:8px;color:#38624e;background:transparent;font-size:12px;border-radius:9px;font-weight:650}
+ #cloud-login button[type="submit"]{display:block;width:100%;min-height:56px;background:#174e3e;color:#fffdf5;border-radius:12px;margin:28px 0 12px;font-size:16px;font-weight:650;box-shadow:0 6px 14px #174e3e18;transition:background .15s,transform .15s}
+ #cloud-login button[type="submit"]:hover{background:#0c392d}
+ #cloud-login button[type="submit"]:active{transform:translateY(1px)}
+ #cloud-login button:focus-visible{outline:3px solid #b58b4b;outline-offset:3px}
+ #cloud-login button[hidden]{display:none!important}
+ #cloud-login #cloud-login-switch-account{background:transparent;color:#325e4a;border:1px solid #cad7cc;width:100%;margin-inline:0}
+ #cloud-login form [role="status"]{font-size:13px;line-height:1.8;overflow-wrap:anywhere;color:#933f30;margin:12px 0}
+ #cloud-login form [role="status"]:empty{display:none}
+ #cloud-login .rawaa-auth-panel>.rawaa-auth-footnote{border-top:1px solid #dce0d6;padding-top:20px;margin:24px 0 0;font-size:12px;color:#788479;line-height:1.9}
+ #cloud-loading{background:#103e34}
+ #cloud-loading .rawaa-cloud-dialog{background:transparent;box-shadow:none;text-align:center;color:#f5eedf}
+ #cloud-loading h2{border:0;font-size:42px;padding:0}
+ #cloud-loading p{color:#d1dfd5}
+ #cloud-loading h2::before{content:"☾";display:block;font:52px Georgia,serif;color:#d0af76;margin-bottom:20px}
+ body.rawaa-brand>header{background:#f5f3ed;color:#183f34;border-bottom:1px solid #dce1d7;padding:24px 20px;text-align:right;display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center}
+ body.rawaa-brand>header .moon{grid-row:1/4;border:1px solid #c2a673;color:#947342;background:#eee9dc;width:54px;height:62px;border-radius:20px 20px 11px 11px;font-size:32px}
+ body.rawaa-brand>header .tiny{font-size:9px;color:#8b7856;letter-spacing:.18em}
+ body.rawaa-brand>header h1{margin:2px 0;font-size:24px;line-height:1.5;color:#193f35}
+ body.rawaa-brand>header p{color:#758176;font-size:12px;margin:0}
+ body.rawaa-brand .rawaa-easy-toolbar{border:0;border-bottom:1px solid #dfe4d9;border-radius:0;background:#f5f3edf5;box-shadow:none;padding:18px 0;margin-top:0;backdrop-filter:blur(12px)}
+ body.rawaa-brand .rawaa-easy-crumb small{font-size:11px;letter-spacing:.05em;color:#849080}
+ body.rawaa-brand .rawaa-easy-switch{background:#fffdf7;border-color:#d8ded1;border-radius:9px;color:#50674f;min-height:44px}
+ body.rawaa-brand .rawaa-easy-hero{position:relative;isolation:isolate;overflow:hidden;background:#174a3c;border-radius:20px;padding:32px;color:#fffdf5;margin:10px 0 22px;min-height:164px;display:flex;flex-direction:column;justify-content:center}
+ body.rawaa-brand .rawaa-easy-hero::after{content:"";position:absolute;z-index:-1;border:1px solid #c9b07d59;width:180px;height:260px;border-radius:90px 90px 0 0;left:20px;top:28px;transform:rotate(-20deg);box-shadow:0 0 0 24px #c9b07d0a,0 0 0 48px #c9b07d07}
+ body.rawaa-brand .rawaa-easy-hero h2{font-size:clamp(24px,2.5vw,34px);font-weight:650;line-height:1.55}
+ body.rawaa-brand .rawaa-easy-hero p{font-size:14px;color:#d7e4d8;max-width:470px;line-height:1.8}
+ body.rawaa-brand .rawaa-easy-metric{background:#fffdf8;border-color:#e0e4d8;border-radius:14px;padding:20px;gap:8px}
+ body.rawaa-brand .rawaa-easy-metric small{font-size:12px;color:#75816f}
+ body.rawaa-brand .rawaa-easy-metric strong{font-weight:650;color:#1f5140}
+ body.rawaa-brand .rawaa-easy-home>h3{margin:28px 0 14px;font-size:16px;font-weight:650}
+ body.rawaa-brand .rawaa-easy-shortcut{background:#fffdf8;box-shadow:none;border-color:#e0e4d8;border-radius:14px;padding:19px 15px;transition:border-color .15s,background .15s}
+ body.rawaa-brand .rawaa-easy-shortcut:hover{background:#f0f4e9;border-color:#aec5ad}
+ body.rawaa-brand .rawaa-easy-shortcut-icon{background:#edf1e5;color:#4c7354;border-radius:12px}
+ body.rawaa-brand .rawaa-easy-shortcut-copy small{font-size:12px}
+ body.rawaa-brand .card,body.rawaa-brand .stat{box-shadow:none;border-color:#dfe5d9;border-radius:16px;background:#fffefb}
+ body.rawaa-brand main h2{border-inline-start:0;border-right:0;padding-right:0;font-weight:650}
+ body.rawaa-brand main input:focus-visible,body.rawaa-brand main select:focus-visible,body.rawaa-brand main textarea:focus-visible{outline:3px solid #b99c6266;outline-offset:2px}
+ body.rawaa-brand .rawaa-cloud-bar{background:#eef2e8;border-color:#d9e2d1;border-radius:12px}
+ body.rawaa-brand .rawaa-cloud-actions button{border-color:#c3d2be;border-radius:9px;color:#3a624a;font-size:12px}
+ body.rawaa-brand nav[aria-label="أقسام رواء"]{box-shadow:none}
+ body.rawaa-brand #daily-operations .operations-card{box-shadow:none;border-color:#dfe5d9;border-radius:15px}
+ body.rawaa-brand #daily-operations .operations-stat{border-color:#dfe5d9;background:#fffdf8}
+ body.rawaa-brand #daily-operations .operations-quick-filters button{min-height:44px}
+ @media(min-width:1000px){
+  body.rawaa-brand.rawaa-easy-view>header{padding:24px 36px}
+  body.rawaa-brand.rawaa-easy-view nav[aria-label="أقسام رواء"]{background:#103e34;padding-top:30px}
+  body.rawaa-brand.rawaa-easy-view nav[aria-label="أقسام رواء"]::before{content:"رواء  /  RAWAA";font-size:23px;color:#e5d1aa;padding:0 0 24px;margin-bottom:16px}
+  body.rawaa-brand.rawaa-easy-view nav[aria-label="أقسام رواء"] a{min-height:44px;font-weight:500;padding:10px 14px}
+  body.rawaa-brand.rawaa-easy-view nav[aria-label="أقسام رواء"] a.rawaa-easy-selected{background:#dce6cb;color:#163e30;font-weight:750}
+ }
+ @media(max-width:999px){
+  body.rawaa-brand.rawaa-easy-view>header{padding:19px 20px}
+  body.rawaa-brand.rawaa-easy-view>header .moon{width:44px;height:52px}
+  body.rawaa-brand.rawaa-easy-view>header h1{font-size:21px}
+  body.rawaa-brand.rawaa-easy-view #rawaa-mobile-tabs{background:#fffefaf5;backdrop-filter:blur(14px);border-color:#dbe2d2;box-shadow:0 -5px 22px #173e3408}
+  body.rawaa-brand #rawaa-mobile-tabs .rawaa-easy-tab.rawaa-easy-selected{background:#e8eedb;color:#27583d}
+ }
+ @media(max-width:760px){
+  #cloud-login .rawaa-auth-layout{grid-template-columns:1fr}
+  #cloud-login .rawaa-auth-story{padding:28px 26px 32px;gap:28px}
+  #cloud-login .rawaa-auth-wordmark{gap:12px}
+  #cloud-login .rawaa-auth-moon{width:46px;height:52px;font-size:34px;border-radius:17px 17px 9px 9px}
+  #cloud-login .rawaa-auth-name strong{font-size:34px}
+  #cloud-login .rawaa-auth-name small{font-size:8px}
+  #cloud-login .rawaa-auth-story h1{font-size:28px;white-space:normal;line-height:1.6;margin:0}
+  #cloud-login .rawaa-auth-story h1 br{display:none}
+  #cloud-login .rawaa-auth-story p,#cloud-login .rawaa-auth-eyebrow,#cloud-login .rawaa-auth-story-footer{display:none}
+  #cloud-login .rawaa-auth-story::before{width:210px;height:300px;left:-85px;bottom:-170px}
+  #cloud-login .rawaa-auth-story::after{width:260px;height:350px;left:-110px;bottom:-195px}
+  #cloud-login .rawaa-auth-panel.rawaa-cloud-dialog{max-width:480px;padding:30px 26px 24px;align-self:start}
+  #cloud-login .rawaa-auth-kicker{font-size:11px;margin-bottom:12px}
+  #cloud-login .rawaa-auth-panel h2{font-size:27px}
+  #cloud-login .rawaa-auth-panel>p{margin-bottom:22px;font-size:13px}
+  #cloud-login form label{margin-top:17px}
+  #cloud-login .rawaa-auth-panel>.rawaa-auth-footnote{margin-top:20px;font-size:11px}
+  body.rawaa-brand .rawaa-easy-hero{padding:24px 21px;min-height:150px}
+  body.rawaa-brand .rawaa-easy-hero p{font-size:13px}
+  body.rawaa-brand .rawaa-easy-metric{padding:15px 12px;gap:6px}
+  body.rawaa-brand .rawaa-easy-shortcut{padding:14px 10px;gap:9px}
+ }
+ @media(prefers-reduced-motion:reduce){#cloud-login *,body.rawaa-brand .rawaa-easy-shortcut{transition:none!important}}
+}
