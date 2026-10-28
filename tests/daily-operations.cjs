@@ -147,12 +147,70 @@ const server=http.createServer((req,res)=>{
   assert.equal(reviewed.summary.actualHours,11);
   assert.equal(reviewed.summary.overnight,1);
 
-  // Date controls and CSV should not create, delete or update payroll.
+  // Search and one-tap status shortcuts operate on visible rows only.
   const payrollBefore=await page.evaluate(()=>JSON.stringify(window.RAWAA_CLOUD_STORAGE._snapshot()));
+  const todayRows=await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows().rows);
+  const recordedRow=todayRows.find(r=>r.kind==='difference');
+  const unplannedRow=todayRows.find(r=>r.kind==='unplanned');
+  assert.ok(recordedRow&&unplannedRow,'there must be contrasting staff shifts');
+  await page.locator('[data-operations-filter="needs-review"]').click();
+  assert.equal(await page.locator('[data-operations-filter="needs-review"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#operations-status').inputValue(),'needs-review');
+  assert.equal(await page.locator('#operations-list article').count(),2,'review filter covers differences and unplanned actual');
+  await page.locator('[data-operations-filter="recorded"]').click();
+  assert.equal(await page.locator('#operations-list article').count(),0,'recorded excludes differing actual shifts');
+  await page.locator('[data-operations-filter="overnight"]').click();
+  assert.equal(await page.locator('#operations-list article').count(),1,'overnight shortcut counts prior-day carry without repeating payroll');
+  await page.locator('[data-operations-filter="all"]').click();
+  assert.equal(await page.locator('#operations-list article').count(),3);
+  assert.match(await page.locator('#operations-visible-count').innerText(),/عرض 3 من 3/);
+  const findName=recordedRow.employee.slice(0,3);
+  await page.locator('#operations-search').fill(findName);
+  const expected=await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getVisibleRows().length);
+  assert.ok(expected>0&&expected<3,'staff name query narrows visible rows');
+  assert.equal(await page.locator('#operations-list article').count(),expected);
+  await page.locator('#operations-search').fill('موظف-غير-موجود-445');
+  assert.equal(await page.locator('#operations-list article').count(),0);
+  assert.equal(await page.locator('#operations-export').isDisabled(),true,'zero matching rows cannot export');
+  assert.equal(await page.locator('#operations-print').isDisabled(),true,'zero matching rows cannot print');
+  await page.locator('#operations-search').fill('');
+  await page.locator('#operations-status').selectOption('overnight');
+  assert.equal(await page.locator('[data-operations-filter="overnight"]').getAttribute('aria-pressed'),'true','native select synchronizes quick-filter chips');
+  // A filtered export includes its visible overnight notice, but no paid
+  // hours credited to today from a shift started yesterday.
+  const [filteredCSV]=await Promise.all([page.waitForEvent('download',{timeout:16000}),page.locator('#operations-export').click()]);
+  const filtered=fs.readFileSync(await filteredCSV.path(),'utf8');
+  assert.match(filtered,/لا تُحسب ساعاتها مرة ثانية/);
+  assert.equal(filtered.trim().split(/\r?\n/).length,2,'CSV has only a header and the visible carryover row');
+  const csvRow=filtered.trim().split(/\r?\n/)[1];
+  assert.match(csvRow,/,"","وردية بدأت/,'carryover hours are blank, not recounted');
+  await page.locator('[data-operations-filter="needs-review"]').click();
+  // Test browser print without opening an OS dialog. The print view contains
+  // only the currently filtered list, with staff/date/selection disclosure.
+  await page.evaluate(()=>{window.__dailyPrintCalled=0;window.print=()=>{window.__dailyPrintCalled++;};});
+  await page.locator('#operations-print').click();
+  assert.equal(await page.evaluate(()=>window.__dailyPrintCalled),1);
+  assert.equal(await page.evaluate(()=>document.body.classList.contains('rawaa-print-daily')),true);
+  assert.match(await page.locator('#operations-print-heading').innerText(),/تقرير متابعة الدوام/);
+  assert.match(await page.locator('#operations-print-heading').innerText(),/تحتاج مراجعة/);
+  assert.equal(await page.locator('#operations-list article').count(),2,'only filtered rows will print');
+  await page.emulateMedia({media:'print'});
+  assert.equal(await page.locator('#daily-operations').evaluate(el=>getComputedStyle(el).display),'block','print daily board is visible');
+  assert.equal(await page.locator('#payslip').evaluate(el=>getComputedStyle(el).display),'none','print excludes employee payslip');
+  assert.equal(await page.locator('#operations-print-heading').evaluate(el=>getComputedStyle(el).display),'block','print heading visible');
+  assert.equal(await page.locator('#rawaa-easy-toolbar').evaluate(el=>getComputedStyle(el).display),'none','navigation hidden in printed daily report');
+  await page.emulateMedia({media:'screen'});
+  await page.evaluate(()=>window.dispatchEvent(new Event('afterprint')));
+  assert.equal(await page.evaluate(()=>document.body.classList.contains('rawaa-print-daily')),false);
+  // Date controls, filters, downloads and print do not modify payroll.
+  await page.locator('#operations-status').selectOption('all');
+  assert.equal(await page.evaluate(()=>JSON.stringify(window.RAWAA_CLOUD_STORAGE._snapshot())),payrollBefore,'search/filter/print must not alter payroll');
+
   const [csv]=await Promise.all([page.waitForEvent('download',{timeout:16000}),page.locator('#operations-export').click()]);
   assert.match(csv.suggestedFilename(),/^RAWAA_Daily_Operations_2026-10-28\.csv$/);
   const content=fs.readFileSync(await csv.path(),'utf8');
   assert.ok(content.includes('وردية')||content.includes('تم تسجيل')||content.includes('الدوام'));
+  assert.equal(content.trim().split(/\r?\n/).length,4,'CSV includes exactly the three visible rows in all-status mode');
   assert.equal(await page.evaluate(()=>JSON.stringify(window.RAWAA_CLOUD_STORAGE._snapshot())),payrollBefore,'board and CSV must not touch cloud');
   await page.locator('#operations-prev').click();
   assert.equal(await page.locator('#operations-date').inputValue(),'2026-10-27');
