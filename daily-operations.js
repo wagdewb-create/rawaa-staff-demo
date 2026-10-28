@@ -1,4 +1,4 @@
-/* RAWAA Cloud 2.17 — read-only daily operations view.
+/* RAWAA Cloud 2.19 — read-only daily operations view.
    Planned shifts remain proposals; only separately confirmed actual attendance affects pay. */
 (()=>{
  'use strict';
@@ -26,7 +26,7 @@
  const getFilterId=()=>$('operations-employee').value||'all';
  const statusText={
   recorded:'تم تسجيل دوام',
-  difference:'الساعات تحتاج مراجعة',
+  difference:'المواعيد أو الساعات تحتاج مراجعة',
   pending:'الخطة دون سجل حضور',
   unplanned:'دوام مسجل دون خطة',
   overnight:'استمرار وردية من أمس'
@@ -42,34 +42,41 @@
   const prior=addDate(date,-1);
   const spillPlans=plans.filter(x=>x.date===prior&&x.nextDay&&allowed(x.employeeId));
   const spillActual=attendance.getCalculated().filter(x=>x.date===prior&&x.nextDay&&allowed(x.employeeId));
-  const groups=new Map();
-  for(const a of actual){
-   const key=String(a.employeeId);
-   if(!groups.has(key))groups.set(key,[]);
-   groups.get(key).push(a);
+  // Reserve overlapping pairs across the whole day before considering a
+  // moved shift. An earlier unmatched plan must not consume a later plan's
+  // attendance. Non-overlapping matches are suggestions only when unambiguous.
+  const used=new Set(),matched=new Map(),rows=[],pairs=[];
+  for(const plan of planned)for(const record of actual){
+   if(plan.employeeId!==record.employeeId)continue;
+   const overlapMins=overlap(plan,record);
+   if(overlapMins>0)pairs.push({plan,record,overlapMins,
+    distance:Math.abs(timeRange(plan).start-timeRange(record).start)});
   }
-  const used=new Set(),rows=[];
-  planned.sort((a,b)=>a.start.localeCompare(b.start)||String(a.employeeId).localeCompare(String(b.employeeId)));
-  // Match at most one actual record to each planned shift, prioritizing actual
-  // temporal overlap. A same-day correction that moves entirely outside the
-  // original planned time is still linkable if it is the sole available record.
+  pairs.sort((a,b)=>b.overlapMins-a.overlapMins||a.distance-b.distance||
+   String(a.plan.id).localeCompare(String(b.plan.id))||String(a.record.id).localeCompare(String(b.record.id)));
+  for(const pair of pairs){
+   if(matched.has(pair.plan.id)||used.has(pair.record.id))continue;
+   matched.set(pair.plan.id,pair.record);used.add(pair.record.id);
+  }
   for(const plan of planned){
-   const candidates=(groups.get(String(plan.employeeId))||[]).filter(x=>!used.has(x.id));
-   let chosen=null,top=-Infinity;
-   for(const record of candidates){
-    const overlapMins=overlap(plan,record);
-    const distance=Math.abs(timeRange(plan).start-timeRange(record).start)/60000;
-    const score=(overlapMins>0?100000:0)+overlapMins*10-distance;
-    if(score>top){chosen=record;top=score;}
+   if(matched.has(plan.id))continue;
+   const remainingPlans=planned.filter(p=>p.employeeId===plan.employeeId&&!matched.has(p.id));
+   const remainingActual=actual.filter(r=>r.employeeId===plan.employeeId&&!used.has(r.id));
+   if(remainingPlans.length===1&&remainingActual.length===1){
+    matched.set(plan.id,remainingActual[0]);used.add(remainingActual[0].id);
    }
-   if(chosen)used.add(chosen.id);
+  }
+  planned.sort((a,b)=>a.start.localeCompare(b.start)||String(a.employeeId).localeCompare(String(b.employeeId)));
+  for(const plan of planned){
+   const chosen=matched.get(plan.id)||null;
    const planHours=planner.interval(plan).minutes/60;
    const actualHours=chosen?Number(chosen.duration||0):null;
    const delta=chosen?(actualHours-planHours):null;
+   const timingChanged=chosen&&(plan.start!==chosen.start||plan.end!==chosen.end||!!plan.nextDay!==!!chosen.nextDay);
    rows.push({
-    key:'plan-'+plan.id,kind:chosen?(Math.abs(delta)>0.5?'difference':'recorded'):'pending',
+    key:'plan-'+plan.id,kind:chosen?(timingChanged||Math.abs(delta)>0.5?'difference':'recorded'):'pending',
     employeeId:plan.employeeId,employee:personName(plan.employeeId,staffMap),
-    plan,actual:chosen,plannedHours:planHours,actualHours,delta,
+    plan,actual:chosen,plannedHours:planHours,actualHours,delta,timingChanged:!!timingChanged,
     date,carryover:false,canReview:!chosen&&staffMap.get(plan.employeeId)?.status==='active'&&!inEmptyAccount()
    });
   }
@@ -193,6 +200,7 @@
       ' ساعة، والفرق '+(row.delta>=0?'+':'')+fmt(row.delta)+' ساعة.',
      'operations-comparison');
     details.append(dif);
+    if(row.timingChanged)details.append(elem('small','موعد الحضور أو الانصراف يختلف عن الخطة؛ راجع الأوقات المعروضة. لا يترتب على هذا التنبيه خصم تلقائي.','operations-comparison'));
    }
    if(row.carryover)details.append(elem('small','تُحسب هذه الوردية ضمن يوم بدايتها، ولا تُضاف ساعاتها مرتين.','operations-comparison'));
    if(row.kind==='pending')details.append(elem('small','بانتظار التسجيل أو المراجعة؛ ليست حالة غياب مؤكدة.','operations-comparison'));
@@ -239,10 +247,10 @@
  }
  $('operations-date').value=dateToday();
  $('operations-prev').addEventListener('click',()=>{
-  $('operations-date').value=addDate($('operations-date').value,-1);render();
+  $('operations-date').value=addDate(safeDate($('operations-date').value)?$('operations-date').value:dateToday(),-1);render();
  });
  $('operations-next').addEventListener('click',()=>{
-  $('operations-date').value=addDate($('operations-date').value,1);render();
+  $('operations-date').value=addDate(safeDate($('operations-date').value)?$('operations-date').value:dateToday(),1);render();
  });
  $('operations-today').addEventListener('click',()=>{
   $('operations-date').value=dateToday();render();
