@@ -130,14 +130,35 @@
   if(!row)return '—';
   return row.start+'–'+row.end+(row.nextDay?' (+1 يوم)':'');
  }
+ function searchable(text){
+  return String(text||'').normalize('NFKC').replace(/[\u064b-\u065f]/g,'').toLocaleLowerCase('ar').trim();
+ }
+ function getVisibleRows(data=getRows()){
+  if(!data)return [];
+  const state=$('operations-status').value;
+  const query=searchable($('operations-search').value);
+  return data.rows.filter(row=>
+   (state==='all'||(state==='needs-review'?['pending','difference','unplanned'].includes(row.kind):row.kind===state))&&
+   (!query||searchable(row.employee+' '+row.employeeId).includes(query))
+  );
+ }
+ function refreshQuickFilters(){
+  const current=$('operations-status').value;
+  for(const button of document.querySelectorAll('[data-operations-filter]'))
+   button.setAttribute('aria-pressed',String(button.dataset.operationsFilter===current));
+ }
  function render(){
   choices();
   const list=$('operations-list'),stats=$('operations-stats'),header=$('operations-period');
   list.replaceChildren();stats.replaceChildren();
   const data=getRows();
-  if(!data){header.textContent='اختر تاريخًا صحيحًا.';$('operations-export').disabled=true;return;}
+  if(!data){header.textContent='اختر تاريخًا صحيحًا.';$('operations-export').disabled=true;$('operations-print').disabled=true;$('operations-visible-count').textContent='';refreshQuickFilters();return;}
   header.textContent=dayName(data.date)+' · '+data.date;
-  $('operations-export').disabled=!data.rows.length||inEmptyAccount();
+  const visible=getVisibleRows(data);
+  $('operations-export').disabled=!visible.length||inEmptyAccount();
+  $('operations-print').disabled=!visible.length||inEmptyAccount();
+  $('operations-visible-count').textContent='عرض '+visible.length+' من '+data.rows.length+' وردية مطابقة للفلاتر. المؤشرات بالأعلى تشمل التاريخ والموظف المختار قبل البحث وتصفية الحالة.';
+  refreshQuickFilters();
   $('operations-empty-account').hidden=!inEmptyAccount();
   const cells=[['الورديات المخططة',data.summary.planned],
    ['مرتبطة بسجل فعلي',data.summary.recorded],
@@ -149,8 +170,7 @@
    const box=elem('div',undefined,'operations-stat');
    box.append(elem('small',key),elem('strong',value));stats.append(box);
   }
-  const f=$('operations-status').value;
-  const visible=data.rows.filter(x=>f==='all'||(f==='needs-review'?['pending','difference','unplanned'].includes(x.kind):x.kind===f));
+  // Filtering is view-only: it cannot add or update payroll or attendance records.
   if(!visible.length){
    list.append(elem('p','لا توجد ورديات مطابقة للفلاتر الحالية. عدم وجود سجل لا يعني الغياب.','operations-empty'));return;
   }
@@ -205,10 +225,13 @@
  }
  function exportCsv(){
   const data=getRows();if(!data||inEmptyAccount())return;
-  const all=data.rows.filter(row=>!row.carryover);
-  const header=['اليوم','الموظف','حالة المراجعة','بداية الخطة','نهاية الخطة','بداية الدوام المسجل','نهاية الدوام المسجل','الساعات الفعلية'];
+  const all=getVisibleRows(data);
+  if(!all.length)return;
+  const header=['يوم التقرير','الموظف','حالة المراجعة','بداية الخطة','نهاية الخطة','بداية الدوام المسجل','نهاية الدوام المسجل','الساعات الفعلية','ملاحظة'];
   const lines=[header,...all.map(r=>[data.date,r.employee,statusText[r.kind],r.plan?.start||'',r.plan?.end||'',
-   r.actual?.start||'',r.actual?.end||'',r.actual?fmt(r.actualHours):''])];
+   r.actual?.start||'',r.actual?.end||'',
+   r.carryover?'':(r.actual?fmt(r.actualHours):''),
+   r.carryover?'وردية بدأت '+r.date+'؛ لا تُحسب ساعاتها مرة ثانية':(r.kind==='pending'?'لا يعني غيابًا':'')])];
   const payload='\ufeff'+lines.map(row=>row.map(csvCell).join(',')).join('\r\n');
   const link=document.createElement('a'),url=URL.createObjectURL(new Blob([payload],{type:'text/csv;charset=utf-8'}));
   link.href=url;link.download='RAWAA_Daily_Operations_'+data.date+'.csv';document.body.append(link);
@@ -230,10 +253,41 @@
   if(action)review(action.dataset.planId);
  });
  $('operations-export').addEventListener('click',exportCsv);
+ $('operations-search').addEventListener('input',render);
+ for(const button of document.querySelectorAll('[data-operations-filter]')){
+  button.addEventListener('click',()=>{
+   $('operations-status').value=button.dataset.operationsFilter;
+   render();
+  });
+ }
+ const clearPrint=()=>document.body.classList.remove('rawaa-print-daily');
+ window.addEventListener('afterprint',clearPrint);
+ function printReport(){
+  const data=getRows();
+  if(!data||inEmptyAccount()||!getVisibleRows(data).length)return;
+  const selected=$('operations-employee');
+  const label=selected.options[selected.selectedIndex]?.textContent||'جميع الموظفين';
+  const status=$('operations-status');
+  const statusLabel=status.options[status.selectedIndex]?.textContent||'جميع الحالات';
+  const searchText=$('operations-search').value.trim();
+  const count=getVisibleRows(data).length;
+  $('operations-print-heading').textContent=
+   'رواء | تقرير متابعة الدوام\n'+dayName(data.date)+' · '+data.date+
+   '\nالموظف: '+label+' | الحالة: '+statusLabel+
+   (searchText?' | البحث: '+searchText:'')+
+   '\nالورديات المعروضة: '+count+
+   ' · الساعات من سجلات الحضور المعتمدة فقط. الوردية الممتدة من أمس لا يُحتسب أجرها مرتين.';
+  document.body.classList.add('rawaa-print-daily');
+  try{window.print();}catch(error){
+   clearPrint();
+   $('operations-message').textContent='تعذّر فتح نافذة الطباعة: '+String(error.message);
+  }
+ }
+ $('operations-print').addEventListener('click',printReport);
  for(const evt of ['rawaa:staff-changed','rawaa:attendance-changed','rawaa:planner-changed']){
   document.addEventListener(evt,render);
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('operations-date').value===dateToday())render();});
  render();
- window.RAWAA_DAILY_OPERATIONS_TEST={getRows,render,overlap,statusText,exportCsv};
+ window.RAWAA_DAILY_OPERATIONS_TEST={getRows,getVisibleRows,render,overlap,statusText,exportCsv,printReport};
 })();
