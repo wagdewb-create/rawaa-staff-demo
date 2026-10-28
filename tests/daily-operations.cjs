@@ -164,7 +164,7 @@ const server=http.createServer((req,res)=>{
   await page.locator('[data-operations-filter="all"]').click();
   assert.equal(await page.locator('#operations-list article').count(),3);
   assert.match(await page.locator('#operations-visible-count').innerText(),/عرض 3 من 3/);
-  const findName=recordedRow.employee.slice(0,3);
+  const findName=recordedRow.employeeId; // ID is distinct even if different staff share the same Arabic name prefix.
   await page.locator('#operations-search').fill(findName);
   const expected=await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getVisibleRows().length);
   assert.ok(expected>0&&expected<3,'staff name query narrows visible rows');
