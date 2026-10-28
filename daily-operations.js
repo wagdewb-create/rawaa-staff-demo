@@ -1,4 +1,4 @@
-/* RAWAA Cloud 2.20 — daily operations with explicit actual-attendance review.
+/* RAWAA Cloud 2.21 — daily operations with explicit actual-attendance review.
    Planned shifts remain proposals; only separately confirmed actual attendance affects pay. */
 (()=>{
  'use strict';
@@ -21,6 +21,22 @@
   const x=timeRange(a),y=timeRange(b);
   return Math.max(0,Math.min(x.end,y.end)-Math.max(x.start,y.start))/60000;
  };
+ // Compare clock times on the same civil-date timeline used by attendance,
+ // including the next-day marker. This is a review aid, never a pay adjustment.
+ function timingVariance(plan,actual){
+  if(!plan||!actual)return null;
+  const p=timeRange(plan),a=timeRange(actual);
+  const arrival=(a.start-p.start)/60000,departure=(a.end-p.end)/60000;
+  return {lateArrival:Math.max(0,arrival),earlyArrival:Math.max(0,-arrival),
+   earlyDeparture:Math.max(0,-departure),lateDeparture:Math.max(0,departure)};
+ }
+ function timingText(timing){
+  if(!timing)return '';
+  const labels=[['lateArrival','حضور بعد الموعد'],['earlyArrival','حضور قبل الموعد'],
+   ['earlyDeparture','انصراف قبل الموعد'],['lateDeparture','انصراف بعد الموعد']];
+  const parts=labels.filter(([key])=>timing[key]>0).map(([key,label])=>label+' بـ '+fmt(timing[key])+' دقيقة');
+  return parts.length?parts.join(' · '):'الحضور والانصراف مطابقان للخطة.';
+ }
  const dayName=date=>new Intl.DateTimeFormat('ar-PS',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'}).format(new Date(date+'T00:00:00Z'));
  const personName=(id,ids)=>ids.get(id)?.name||'موظف غير معروف';
  const getFilterId=()=>$('operations-employee').value||'all';
@@ -76,7 +92,7 @@
    rows.push({
     key:'plan-'+plan.id,kind:chosen?(timingChanged||Math.abs(delta)>0.5?'difference':'recorded'):'pending',
     employeeId:plan.employeeId,employee:personName(plan.employeeId,staffMap),
-    plan,actual:chosen,plannedHours:planHours,actualHours,delta,timingChanged:!!timingChanged,
+    plan,actual:chosen,plannedHours:planHours,actualHours,delta,timingChanged:!!timingChanged,timing:timingVariance(plan,chosen),
     date,carryover:false,canReview:!chosen&&staffMap.get(plan.employeeId)?.status==='active'&&!inEmptyAccount()
    });
   }
@@ -145,7 +161,9 @@
   const state=$('operations-status').value;
   const query=searchable($('operations-search').value);
   return data.rows.filter(row=>
-   (state==='all'||(state==='needs-review'?['pending','difference','unplanned'].includes(row.kind):row.kind===state))&&
+   (state==='all'||(state==='late-arrival'?row.timing?.lateArrival>0:
+    state==='early-departure'?row.timing?.earlyDeparture>0:
+    state==='needs-review'?['pending','difference','unplanned'].includes(row.kind):row.kind===state))&&
    (!query||searchable(row.employee+' '+row.employeeId).includes(query))
   );
  }
@@ -200,7 +218,8 @@
       ' ساعة، والفرق '+(row.delta>=0?'+':'')+fmt(row.delta)+' ساعة.',
      'operations-comparison');
     details.append(dif);
-    if(row.timingChanged)details.append(elem('small','موعد الحضور أو الانصراف يختلف عن الخطة؛ راجع الأوقات المعروضة. لا يترتب على هذا التنبيه خصم تلقائي.','operations-comparison'));
+    details.append(elem('small',timingText(row.timing),'operations-comparison operations-timing'));
+    if(row.timingChanged)details.append(elem('small','الفروق مقارنة بالخطة للمراجعة فقط؛ لا يترتب عليها خصم تلقائي.','operations-comparison'));
    }
    if(row.carryover)details.append(elem('small','تُحسب هذه الوردية ضمن يوم بدايتها، ولا تُضاف ساعاتها مرتين.','operations-comparison'));
    if(row.kind==='pending')details.append(elem('small','بانتظار التسجيل أو المراجعة؛ ليست حالة غياب مؤكدة.','operations-comparison'));
@@ -259,11 +278,13 @@
   const data=getRows();if(!data||inEmptyAccount())return;
   const all=getVisibleRows(data);
   if(!all.length)return;
-  const header=['يوم التقرير','الموظف','حالة المراجعة','بداية الخطة','نهاية الخطة','بداية الدوام المسجل','نهاية الدوام المسجل','الساعات الفعلية','ملاحظة'];
+  const header=['يوم التقرير','الموظف','حالة المراجعة','بداية الخطة','نهاية الخطة','بداية الدوام المسجل','نهاية الدوام المسجل','الساعات الفعلية','ملاحظة','تاريخ بداية الوردية','تاريخ نهاية الخطة','تاريخ نهاية الدوام المسجل','حضور بعد الموعد (دقيقة)','حضور قبل الموعد (دقيقة)','انصراف قبل الموعد (دقيقة)','انصراف بعد الموعد (دقيقة)'];
   const lines=[header,...all.map(r=>[data.date,r.employee,statusText[r.kind],r.plan?.start||'',r.plan?.end||'',
    r.actual?.start||'',r.actual?.end||'',
    r.carryover?'':(r.actual?fmt(r.actualHours):''),
-   r.carryover?'وردية بدأت '+r.date+'؛ لا تُحسب ساعاتها مرة ثانية':(r.kind==='pending'?'لا يعني غيابًا':'')])];
+   r.carryover?'وردية بدأت '+r.date+'؛ لا تُحسب ساعاتها مرة ثانية':(r.kind==='pending'?'لا يعني غيابًا':(r.timingChanged?'فروق للمراجعة فقط؛ دون خصم تلقائي':'')),
+   r.date,r.plan?addDate(r.plan.date,r.plan.nextDay?1:0):'',r.actual?addDate(r.actual.date,r.actual.nextDay?1:0):'',
+   r.timing?.lateArrival??'',r.timing?.earlyArrival??'',r.timing?.earlyDeparture??'',r.timing?.lateDeparture??''])];
   const payload='\ufeff'+lines.map(row=>row.map(csvCell).join(',')).join('\r\n');
   const link=document.createElement('a'),url=URL.createObjectURL(new Blob([payload],{type:'text/csv;charset=utf-8'}));
   link.href=url;link.download='RAWAA_Daily_Operations_'+data.date+'.csv';document.body.append(link);
@@ -288,6 +309,9 @@
  });
  $('operations-export').addEventListener('click',exportCsv);
  $('operations-search').addEventListener('input',render);
+ $('operations-clear-filters').addEventListener('click',()=>{
+  $('operations-employee').value='all';$('operations-status').value='all';$('operations-search').value='';render();
+ });
  for(const button of document.querySelectorAll('[data-operations-filter]')){
   button.addEventListener('click',()=>{
    $('operations-status').value=button.dataset.operationsFilter;
@@ -323,5 +347,5 @@
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('operations-date').value===dateToday())render();});
  render();
- window.RAWAA_DAILY_OPERATIONS_TEST={getRows,getVisibleRows,render,overlap,statusText,exportCsv,printReport,reviewActual};
+ window.RAWAA_DAILY_OPERATIONS_TEST={getRows,getVisibleRows,render,overlap,statusText,exportCsv,printReport,reviewActual,timingVariance,timingText};
 })();

@@ -60,6 +60,22 @@ const server=http.createServer((req,res)=>{
   }));
   assert.equal(initial.actual.length,0);
   assert.equal(initial.payroll,0);
+  const timing=await page.evaluate(()=>{
+   const api=window.RAWAA_DAILY_OPERATIONS_TEST;
+   const plan={date:'2026-10-27',start:'22:00',end:'06:00',nextDay:true};
+   return {
+    night:api.timingVariance(plan,{...plan,start:'23:00',end:'05:00'}),
+    extended:api.timingVariance(plan,{...plan,start:'20:00',end:'07:00'}),
+    midnight:api.timingVariance({...plan,start:'23:00',end:'23:30',nextDay:false},{...plan,start:'23:00',end:'00:30'}),
+    exact:api.timingVariance(plan,plan),missingPlan:api.timingVariance(null,plan),missingActual:api.timingVariance(plan,null)
+   };
+  });
+  assert.deepEqual(timing.night,{lateArrival:60,earlyArrival:0,earlyDeparture:60,lateDeparture:0});
+  assert.deepEqual(timing.extended,{lateArrival:0,earlyArrival:120,earlyDeparture:0,lateDeparture:60});
+  assert.deepEqual(timing.midnight,{lateArrival:0,earlyArrival:0,earlyDeparture:0,lateDeparture:60},'next-day departure does not appear 23 hours early');
+  assert.deepEqual(timing.exact,{lateArrival:0,earlyArrival:0,earlyDeparture:0,lateDeparture:0});
+  assert.equal(timing.missingPlan,null);assert.equal(timing.missingActual,null);
+
   // Isolated view fixtures: restore every bridge before continuing UI tests.
   const matching=await page.evaluate(()=>{
    const planner=window.RAWAA_PLANNER_TEST,attendance=window.RAWAA_ATTENDANCE_BRIDGE;
@@ -239,6 +255,27 @@ const server=http.createServer((req,res)=>{
 
   // Search and one-tap status shortcuts operate on visible rows only.
   const payrollBefore=await page.evaluate(()=>JSON.stringify(window.RAWAA_CLOUD_STORAGE._snapshot()));
+  await page.locator('#operations-status').selectOption('late-arrival');
+  assert.equal(await page.locator('#operations-list article').count(),1);
+  assert.match(await page.locator('.operations-timing').innerText(),/حضور بعد الموعد بـ 60 دقيقة/);
+  assert.match(await page.locator('.operations-timing').innerText(),/انصراف قبل الموعد بـ 60 دقيقة/);
+  await page.locator('#operations-status').selectOption('early-departure');
+  assert.equal(await page.locator('#operations-list article').count(),1);
+  const [varianceDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#operations-export').click()]);
+  const varianceCsv=fs.readFileSync(await varianceDownload.path(),'utf8');
+  assert.equal(varianceCsv.trim().split(/\r?\n/).length,2,'timing filter exports only its matching row');
+  assert.match(varianceCsv,/حضور بعد الموعد \(دقيقة\)/);
+  assert.match(varianceCsv,/,"60","0","60","0"/,'numeric minute columns match the actual shift');
+  await page.locator('#operations-employee').selectOption('001');
+  await page.locator('#operations-search').fill('no-match');
+  await page.locator('#operations-clear-filters').click();
+  assert.equal(await page.locator('#operations-employee').inputValue(),'all');
+  assert.equal(await page.locator('#operations-status').inputValue(),'all');
+  assert.equal(await page.locator('#operations-search').inputValue(),'');
+  assert.equal(await page.locator('#operations-date').inputValue(),'2026-10-28','clear filters preserves the selected date');
+  assert.equal(await page.locator('#operations-list article').count(),3);
+  assert.equal(await page.evaluate(()=>JSON.stringify(window.RAWAA_CLOUD_STORAGE._snapshot())),payrollBefore,'timing filters and export do not mutate any records');
+
   const todayRows=await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows().rows);
   const recordedRow=todayRows.find(r=>r.kind==='difference');
   const unplannedRow=todayRows.find(r=>r.kind==='unplanned');
@@ -274,6 +311,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(filtered.trim().split(/\r?\n/).length,2,'CSV has only a header and the visible carryover row');
   const csvRow=filtered.trim().split(/\r?\n/)[1];
   assert.match(csvRow,/,"","وردية بدأت/,'carryover hours are blank, not recounted');
+  assert.match(csvRow,/,"2026-10-27","2026-10-28","2026-10-28","","","",""$/,'overnight start/end dates are explicit and variance is not recounted');
   await page.locator('[data-operations-filter="needs-review"]').click();
   // Test browser print without opening an OS dialog. The print view contains
   // only the currently filtered list, with staff/date/selection disclosure.
@@ -284,6 +322,7 @@ const server=http.createServer((req,res)=>{
   assert.match(await page.locator('#operations-print-heading').innerText(),/تقرير متابعة الدوام/);
   assert.match(await page.locator('#operations-print-heading').innerText(),/تحتاج مراجعة/);
   assert.equal(await page.locator('#operations-list article').count(),2,'only filtered rows will print');
+  assert.match(await page.locator('.operations-timing').innerText(),/حضور بعد الموعد بـ 60 دقيقة/,'printed cards include timing detail');
   await page.emulateMedia({media:'print'});
   assert.equal(await page.locator('#daily-operations').evaluate(el=>getComputedStyle(el).display),'block','print daily board is visible');
   assert.equal(await page.locator('#payslip').evaluate(el=>getComputedStyle(el).display),'none','print excludes employee payslip');
