@@ -185,6 +185,58 @@ const server=http.createServer((req,res)=>{
   assert.equal(reviewed.summary.actualHours,11);
   assert.equal(reviewed.summary.overnight,1);
 
+
+  // New v2.19 path: directly review a saved attendance record from the
+  // daily card without silently editing paid hours or discarding drafts.
+  const paidBeforeCorrection=await page.evaluate(()=>window.RAWAA_FINANCE_TEST.sumMonthly('001','2026-10').gross);
+  const actualBeforeCorrection=await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries());
+  assert.ok(await page.locator('#operations-list .operations-edit-actual').count()>=2,
+    'actual records can be reviewed without drilling into the full attendance table');
+  await page.locator('#operations-list .operations-difference .operations-edit-actual').click();
+  assert.equal(await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.getSection()),'attendance');
+  assert.equal(await page.locator('#att-date').inputValue(),'2026-10-28');
+  assert.equal(await page.locator('#att-start').inputValue(),'09:00');
+  assert.equal(await page.locator('#att-actual-review-hint').isVisible(),true,'editing stored pay displays warning');
+  await page.locator('#att-end').fill('15:00');
+  assert.deepEqual(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries()),actualBeforeCorrection,
+    'opening and changing an unsaved draft must not alter attendance');
+
+  await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.goTo('daily-operations'));
+  decisions.push(false);
+  await page.locator('#operations-list .operations-unplanned .operations-edit-actual').click();
+  assert.equal(await page.locator('#att-end').inputValue(),'15:00','declining to replace draft preserves unsaved edit');
+  assert.deepEqual(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries()),actualBeforeCorrection);
+
+  await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.goTo('attendance'));
+  decisions.push(false);
+  await page.locator('#attendance-form button[type="submit"]').click();
+  assert.deepEqual(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries()),actualBeforeCorrection,
+    'rejecting payroll impact confirmation must leave actual attendance untouched');
+  assert.equal(await page.evaluate(()=>window.RAWAA_FINANCE_TEST.sumMonthly('001','2026-10').gross),paidBeforeCorrection);
+
+  decisions.push(true);
+  await page.locator('#attendance-form button[type="submit"]').click();
+  await page.waitForFunction(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries().some(r=>r.employeeId==='001'&&r.date==='2026-10-28'&&r.end==='15:00'));
+  assert.equal(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries().length),3,
+    'correction updates existing attendance row instead of paying a duplicate shift');
+  assert.ok(await page.evaluate(()=>window.RAWAA_FINANCE_TEST.sumMonthly('001','2026-10').gross)<paidBeforeCorrection,
+    'payroll recalculates only after signed-off correction');
+
+  await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.goTo('daily-operations'));
+  const afterCorrection=await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows());
+  assert.equal(afterCorrection.summary.differing,1,'shorter saved work remains flagged for review');
+  assert.equal(afterCorrection.summary.actualHours,10);
+  // A carryover card is dated for the previous day. Opening it for review
+  // must use the original date and never double-count on today's dashboard.
+  const carryoverEdit=page.locator('#operations-list .operations-overnight .operations-edit-actual');
+  assert.equal(await carryoverEdit.count(),1);
+  await carryoverEdit.click();
+  assert.equal(await page.locator('#att-date').inputValue(),'2026-10-27');
+  assert.equal(await page.locator('#att-next').isChecked(),true);
+  await page.locator('#att-cancel').click();
+  await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.goTo('daily-operations'));
+  assert.equal(await page.evaluate(()=>window.RAWAA_ATTENDANCE_BRIDGE.getEntries().length),3);
+
   // Search and one-tap status shortcuts operate on visible rows only.
   const payrollBefore=await page.evaluate(()=>JSON.stringify(window.RAWAA_CLOUD_STORAGE._snapshot()));
   const todayRows=await page.evaluate(()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows().rows);

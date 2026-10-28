@@ -1,4 +1,4 @@
-/* RAWAA Cloud 2.19 — read-only daily operations view.
+/* RAWAA Cloud 2.20 — daily operations with explicit actual-attendance review.
    Planned shifts remain proposals; only separately confirmed actual attendance affects pay. */
 (()=>{
  'use strict';
@@ -210,6 +210,12 @@
     b.type='button';b.dataset.planId=row.plan.id;b.dataset.action='review';
     footer.append(b);
    }
+   if(row.actual&&!inEmptyAccount()){
+    const b=elem('button',row.carryover?'مراجعة سجل أمس':'مراجعة السجل الفعلي','operations-edit-actual');
+    b.type='button';b.dataset.actualId=row.actual.id;b.dataset.action='edit-actual';
+    b.setAttribute('aria-label','مراجعة سجل الحضور المحفوظ للموظف '+row.employee);
+    footer.append(b);
+   }
    if(!row.carryover&&!row.plan){
     const a=elem('a','فتح تسجيل الدوام');a.href='#attendance';footer.append(a);
    }
@@ -226,6 +232,24 @@
   const result=attendance.prefillFromPlan({...plan});
   if(!result?.ok){$('operations-message').textContent=result?.error||'تعذرت مراجعة الوردية.';return;}
   $('operations-message').textContent='نُسخت الأوقات المقترحة إلى نموذج الحضور. راجع الأوقات الحقيقية والأجر، ثم أكّد الحفظ.';
+ }
+ function reviewActual(actualId){
+  if(inEmptyAccount()){
+   $('operations-message').textContent='استعد بيانات الموظفين الأصلية قبل مراجعة سجلات الدوام.';
+   return;
+  }
+  const record=attendance.getEntries().find(x=>x.id===actualId);
+  if(!record){$('operations-message').textContent='سجل الحضور لم يعد موجودًا. حدّث الصفحة قبل المراجعة.';return;}
+  if(typeof attendance.reviewSavedShift!=='function'){
+   $('operations-message').textContent='تعذر فتح سجل الحضور للمراجعة. حدّث الصفحة.';
+   return;
+  }
+  const result=attendance.reviewSavedShift(record.id);
+  if(!result?.ok){
+   $('operations-message').textContent=result?.error||'تعذّر فتح سجل الحضور.';
+   return;
+  }
+  $('operations-message').textContent='فُتح السجل المحفوظ للمراجعة فقط؛ لن يتغير الأجر أو السجل إلا بعد حفظ التعديل وتأكيد أثره على الرواتب.';
  }
  function csvCell(value){
   const text=String(value??'');
@@ -257,8 +281,10 @@
  });
  for(const id of ['operations-date','operations-employee','operations-status'])$(id).addEventListener('change',render);
  $('operations-list').addEventListener('click',e=>{
-  const action=e.target.closest('button[data-action="review"]');
-  if(action)review(action.dataset.planId);
+  const action=e.target.closest('button[data-action]');
+  if(!action)return;
+  if(action.dataset.action==='review')review(action.dataset.planId);
+  if(action.dataset.action==='edit-actual')reviewActual(action.dataset.actualId);
  });
  $('operations-export').addEventListener('click',exportCsv);
  $('operations-search').addEventListener('input',render);
@@ -297,5 +323,5 @@
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&$('operations-date').value===dateToday())render();});
  render();
- window.RAWAA_DAILY_OPERATIONS_TEST={getRows,getVisibleRows,render,overlap,statusText,exportCsv,printReport};
+ window.RAWAA_DAILY_OPERATIONS_TEST={getRows,getVisibleRows,render,overlap,statusText,exportCsv,printReport,reviewActual};
 })();
