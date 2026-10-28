@@ -279,6 +279,35 @@ const server=http.createServer((req,res)=>{try{
   assert.equal(await securePage.locator('#cloud-login button').filter({hasText:'إنشاء حساب لأول مرة'}).isHidden(),true,'no signup on secure gateway');
   assert.equal(await securePage.locator('#cloud-login input[type="email"]').inputValue(),'asdfqweml09@gmail.com');
   assert.equal(await securePage.locator('#cloud-login input[type="email"]').getAttribute('readonly'),'','new manager target is prefilled');
+  // Visual refresh: keep the original account target and authentication gate.
+  assert.equal(await securePage.locator('#cloud-login').getAttribute('role'),'dialog');
+  await securePage.locator('#cloud-login-password').fill('visual-test-only');
+  await securePage.locator('#cloud-password-toggle').click();
+  assert.equal(await securePage.locator('#cloud-login-password').getAttribute('type'),'text');
+  assert.equal(await securePage.locator('#cloud-password-toggle').getAttribute('aria-pressed'),'true');
+  assert.equal(await securePage.locator('#cloud-login-password').inputValue(),'visual-test-only');
+  await securePage.locator('#cloud-password-toggle').click();
+  assert.equal(await securePage.locator('#cloud-login-password').getAttribute('type'),'password');
+  for(const viewport of [{width:320,height:568},{width:390,height:844},{width:760,height:600},{width:1440,height:900}]){
+   await securePage.setViewportSize(viewport);
+   const layout=await securePage.locator('#cloud-login').evaluate(overlay=>{
+    const panel=overlay.querySelector('.rawaa-auth-panel'),button=overlay.querySelector('button[type="submit"]');
+    const form=panel.querySelector('form');
+    return {width:overlay.clientWidth,scroll:overlay.scrollWidth,panel:panel.getBoundingClientRect().toJSON(),
+     form:form.getBoundingClientRect().toJSON(),button:button.getBoundingClientRect().toJSON(),
+     columns:getComputedStyle(overlay.querySelector('.rawaa-auth-layout')).gridTemplateColumns.split(' ').length,
+     font:parseFloat(getComputedStyle(overlay.querySelector('input')).fontSize)};
+   });
+   assert.ok(layout.scroll<=layout.width+1,'login has no sideways overflow at '+viewport.width);
+   assert.ok(layout.panel.left>=-1&&layout.panel.right<=viewport.width+1,'form panel fits viewport');
+   assert.ok(layout.form.width>200,'form stays usable on narrow phone');
+   assert.ok(layout.button.height>=44&&layout.font>=16,'touch target and iPhone input font stay accessible');
+   assert.equal(layout.columns,viewport.width>760?2:1,'responsive split layout');
+   await securePage.locator('#cloud-login button[type="submit"]').scrollIntoViewIfNeeded();
+   assert.equal(await securePage.locator('#cloud-login button[type="submit"]').isVisible(),true);
+  }
+  await securePage.locator('#cloud-login-password').fill('');
+
   assert.match(await securePage.locator('#cloud-login').innerText(),/تم تسجيل حساب Gmail الجديد|سجّل الدخول/);
   await securePage.locator('#cloud-login-switch-account').click();
   assert.equal(await securePage.locator('#cloud-login input[type="email"]').inputValue(),'');

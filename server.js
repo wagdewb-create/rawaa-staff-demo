@@ -13,7 +13,7 @@ const AUTH=process.env.NEON_AUTH_BASE_URL||'';
 const DATA=process.env.NEON_DATA_API_URL||'';
 const PUBLIC_ORIGIN=process.env.RAWAA_PUBLIC_ORIGIN||'';
 const port=Number(process.env.PORT||3000);
-const files=new Set(['cloud.html','index.html','work.html','cloud-sync.js','easy-ui.js','easy-ui.css','staff.js','staff.css','daily-batch.js','weekly-report.js','shift-planner.js','daily-operations.js','work-vault.js','service-worker.js','manifest.webmanifest','icon.svg']);
+const files=new Set(['cloud.html','index.html','work.html','cloud-sync.js','easy-ui.js','easy-ui.css','brand.css','staff.js','staff.css','daily-batch.js','weekly-report.js','shift-planner.js','daily-operations.js','work-vault.js','service-worker.js','manifest.webmanifest','icon.svg']);
 const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
 const AUTH_PATHS=new Set(['/get-session','/sign-in/email','/sign-out','/forget-password','/reset-password','/send-verification-email','/verify-email','/email-otp/send-verification-otp','/email-otp/verify-email']);
 const OTP_PATHS=new Set(['/email-otp/send-verification-otp','/email-otp/verify-email']);

@@ -534,11 +534,19 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
  }
  async function login(){
   const overlay=item('div',undefined,'rawaa-cloud-overlay');overlay.id='cloud-login';
-  const box=item('div',undefined,'rawaa-cloud-dialog');
-  const title=item('h2','تسجيل الدخول — RAWAA Cloud'),subtitle=item('p','استخدم نفس البريد وكلمة المرور على كل جهاز لتظهر سجلات موظفيك نفسها. البيانات محمية بحسابك ولا تُعرض علنًا.');
+  const box=item('div',undefined,'rawaa-cloud-dialog rawaa-auth-panel');
+  const title=item('h2','أهلًا بعودتك'),subtitle=item('p','استخدم نفس البريد وكلمة المرور على كل جهاز لتظهر سجلات موظفيك نفسها. البيانات محمية بحسابك ولا تُعرض علنًا.');
   const form=item('form'),emailLabel=item('label','البريد الإلكتروني'),email=item('input'),passLabel=item('label','كلمة المرور'),pass=item('input');
   email.type='email';email.autocomplete='username';email.required=true;pass.type='password';pass.autocomplete='current-password';pass.required=true;pass.minLength=8;
-  emailLabel.append(email);passLabel.append(pass);
+  email.id='cloud-login-email';email.placeholder='name@example.com';email.inputMode='email';
+  pass.id='cloud-login-password';pass.placeholder='كلمة مرور حساب رواء';
+  emailLabel.append(email);passLabel.htmlFor=pass.id;
+  const passField=item('div',undefined,'rawaa-password-field');
+  const reveal=item('button','إظهار');reveal.type='button';reveal.id='cloud-password-toggle';
+  reveal.setAttribute('aria-controls',pass.id);reveal.setAttribute('aria-pressed','false');reveal.setAttribute('aria-label','إظهار كلمة المرور');
+  reveal.onclick=()=>{const visible=pass.type==='password';pass.type=visible?'text':'password';reveal.textContent=visible?'إخفاء':'إظهار';reveal.setAttribute('aria-pressed',String(visible));reveal.setAttribute('aria-label',visible?'إخفاء كلمة المرور':'إظهار كلمة المرور');};
+  passField.append(pass,reveal);
+  title.id='cloud-login-heading';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby',title.id);
   const message=item('p');message.setAttribute('role','status');
   const submit=item('button','تسجيل الدخول'),create=item('button','إنشاء حساب لأول مرة');submit.type='submit';create.type='button';
   let transferTarget='';
@@ -551,7 +559,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
     email.value=transferTarget;email.readOnly=true;
     subtitle.textContent='تم تسجيل حساب Gmail الجديد في RAWAA مسبقًا. سجّل الدخول بكلمة مرور RAWAA الخاصة بهذا الحساب، ثم أكّد البريد واستعد النسخة المشفّرة. لا تنشئ حسابًا ثالثًا.';
    }else{
-    subtitle.textContent='سجّل الدخول بأحد حسابَي RAWAA الحاليين. أُغلق إنشاء حسابات جديدة من الرابط الآمن لحماية الموظفين والرواتب.';
+    subtitle.textContent='سجّل الدخول إلى مساحة رواء، وتابع فريقك ودوامك من أي جهاز.';
    }
   }
   const switchAccount=item('button','استخدام بريد حساب آخر');switchAccount.type='button';switchAccount.id='cloud-login-switch-account';
@@ -562,7 +570,17 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    email.readOnly=false;email.value='';pass.value='';switchAccount.hidden=true;
    subtitle.textContent='سجّل الدخول ببريد حساب RAWAA الموجود. تغيير الحساب لا يحذف البيانات أو يوقف صلاحيات المدير السابق.';
   };
-  form.append(emailLabel,passLabel,submit,create,switchAccount,message);box.append(title,subtitle,form,item('p','لا تشارك كلمة مرور المدير مع موظفين آخرين. إذا لم تتمكن من تسجيل الدخول، لا تنشئ حسابًا آخر بالبريد نفسه.'));overlay.append(box);document.body.append(overlay);
+  form.append(emailLabel,passLabel,passField,submit,create,switchAccount,message);
+  box.append(item('span','مساحة إدارة المطعم','rawaa-auth-kicker'),title,subtitle,form,item('p','استخدم حساب المدير الخاص بك. سجلات الموظفين متاحة بعد تسجيل الدخول فقط.','rawaa-auth-footnote'));
+  const story=item('div',undefined,'rawaa-auth-story'),wordmark=item('div',undefined,'rawaa-auth-wordmark');
+  const moon=item('span','☾','rawaa-auth-moon');moon.setAttribute('aria-hidden','true');
+  const name=item('div',undefined,'rawaa-auth-name');name.append(item('strong','رواء'),item('small','RAWAA'));
+  wordmark.append(moon,name);
+  const copy=item('div',undefined,'rawaa-auth-story-copy');
+  copy.append(item('span','تفاصيل يومك، في مكان واحد','rawaa-auth-eyebrow'),item('h1','إدارة هادئة.\nيوم أكثر وضوحًا.'),item('p','فريقك، وردياتك وحساباتك. مساحة مرتّبة لتبقى قريبًا من كل التفاصيل.'));
+  const footer=item('div',undefined,'rawaa-auth-story-footer');for(const label of ['الموظفون','الدوام','الرواتب'])footer.append(item('span',label));
+  story.append(wordmark,copy,footer);
+  const layout=item('div',undefined,'rawaa-auth-layout');layout.append(story,box);overlay.append(layout);document.body.append(overlay);
   async function enter(signup){
    if(signup&&window.RAWAA_FIRST_PARTY_AUTH){message.textContent='إنشاء الحسابات الجديدة مغلق في بوابة RAWAA الآمنة. استخدم حسابك المسجّل.';return;}
    if(!email.checkValidity()||!pass.checkValidity()){message.textContent='أدخل بريدًا وكلمة مرور صالحين.';return;}
@@ -661,7 +679,7 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    return;
   }
   style();const intro=item('div',undefined,'rawaa-cloud-overlay');intro.id='cloud-loading';
-  const box=item('div',undefined,'rawaa-cloud-dialog');box.append(item('h2','RAWAA Cloud'),item('p','جارٍ فتح الاتصال السحابي الآمن...'));intro.append(box);document.body.append(intro);
+  const box=item('div',undefined,'rawaa-cloud-dialog');box.append(item('h2','رواء'),item('p','نجهّز مساحة عملك…'));intro.append(box);document.body.append(intro);
   try{
    const module=await import(SDK);
    client=module.createClient({auth:{url:AUTH},dataApi:{url:DATA}});
