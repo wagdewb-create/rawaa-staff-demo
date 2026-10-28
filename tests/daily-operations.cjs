@@ -16,7 +16,7 @@ const server=http.createServer((req,res)=>{
 });
 (async()=>{
  await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
- const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox']});
+ const browser=await chromium.launch({...(process.env.RAWAA_TEST_BROWSER?{executablePath:process.env.RAWAA_TEST_BROWSER}:{channel:'chrome'}),headless:true,args:['--no-sandbox']});
  try{
   const base='http://127.0.0.1:'+server.address().port;
   const context=await browser.newContext({viewport:{width:375,height:812},deviceScaleFactor:3,hasTouch:true,isMobile:true,acceptDownloads:true});
@@ -60,6 +60,44 @@ const server=http.createServer((req,res)=>{
   }));
   assert.equal(initial.actual.length,0);
   assert.equal(initial.payroll,0);
+  // Isolated view fixtures: restore every bridge before continuing UI tests.
+  const matching=await page.evaluate(()=>{
+   const planner=window.RAWAA_PLANNER_TEST,attendance=window.RAWAA_ATTENDANCE_BRIDGE;
+   const originalPlans=planner.getPlans,originalActual=attendance.getCalculated;
+   const shift=(id,start,end)=>({id,employeeId:'001',date:'2026-10-27',start,end,nextDay:false});
+   let plans=[],actual=[];
+   planner.getPlans=()=>plans.map(x=>({...x}));
+   attendance.getCalculated=()=>actual.map(x=>({...x}));
+   const rows=()=>window.RAWAA_DAILY_OPERATIONS_TEST.getRows('2026-10-27','all').rows;
+   try{
+    plans=[shift('early','08:00','12:00'),shift('late','16:00','20:00')];
+    actual=[{...shift('record','16:00','20:00'),duration:4}];
+    const reserved=rows().map(r=>({plan:r.plan?.id,actual:r.actual?.id,kind:r.kind}));
+    plans.reverse();
+    const reversed=rows().map(r=>({plan:r.plan?.id,actual:r.actual?.id,kind:r.kind}));
+    actual=[{...shift('record','13:00','15:00'),duration:2}];
+    const ambiguous=rows().map(r=>r.kind);
+    plans=[shift('one','08:00','16:00')];
+    actual=[{...shift('record','09:00','17:00'),duration:8}];
+    const moved=rows()[0];
+    actual=[{...shift('record','08:00','16:00'),duration:8}];
+    const exact=rows()[0];
+    actual=[{...shift('record','17:00','21:00'),duration:4}];
+    const sole=rows()[0];
+    return {reserved,reversed,ambiguous,moved:{kind:moved.kind,delta:moved.delta},exact:exact.kind,sole:{kind:sole.kind,actual:sole.actual?.id}};
+   }finally{planner.getPlans=originalPlans;attendance.getCalculated=originalActual;}
+  });
+  assert.deepEqual(matching.reserved,[{plan:'early',actual:undefined,kind:'pending'},{plan:'late',actual:'record',kind:'recorded'}],'later exact match cannot be consumed by an earlier plan');
+  assert.deepEqual(matching.reversed,matching.reserved,'matching is independent of plan input order');
+  assert.deepEqual(matching.ambiguous,['pending','pending','unplanned'],'ambiguous non-overlapping attendance stays unassigned');
+  assert.deepEqual(matching.moved,{kind:'difference',delta:0},'equal-length shifts with changed times need review');
+  assert.equal(matching.exact,'recorded');
+  assert.deepEqual(matching.sole,{kind:'difference',actual:'record'},'one moved shift remains linkable');
+  await page.locator('#operations-date').fill('');
+  await page.locator('#operations-next').click();
+  assert.equal(await page.locator('#operations-date').inputValue(),await page.evaluate(()=>window.RAWAA_PLANNER_TEST.addDate(window.RAWAA_RESTAURANT_TODAY(),1)),'empty date navigates from today without throwing');
+  await page.locator('#operations-date').fill('2026-10-27');
+
   await page.evaluate(()=>window.RAWAA_EASY_UI_TEST.goTo('shift-planner'));
   const plan=async(date,start,end,nextDay)=>{
    await page.locator('#planner-day').fill(date);
