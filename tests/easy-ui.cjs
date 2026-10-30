@@ -109,6 +109,9 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   assert.equal(await d.locator('#rawaa-mobile-tabs').isVisible(),false);
   const originalRoster=await d.evaluate(()=>JSON.stringify(window.RAWAA_STAFF.getAll()));
   const personName=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[1].name);
+  const personRole=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[1].role);
+  await d.locator('#rawaa-staff-search').fill(personRole);
+  assert.equal(await d.locator('#staff-manage-cards article:not([hidden])').count(),1,'department search finds employees');
   await d.locator('#rawaa-staff-search').fill(personName);
   assert.equal(await d.locator('#staff-manage-cards article:not([hidden])').count(),1,'name search narrows the directory');
   await d.locator('#rawaa-staff-status').selectOption('archived');
