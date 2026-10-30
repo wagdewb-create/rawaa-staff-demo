@@ -111,3 +111,62 @@
  }
  @media(prefers-reduced-motion:reduce){#cloud-login *,body.rawaa-brand .rawaa-easy-shortcut{transition:none!important}}
 }
+/* 2.23: the daily workspace, employee cards and monthly review. */
+@media screen {
+ .rawaa-brand .rawaa-home-date{color:#dfc99d;font-size:13px;margin-bottom:14px;display:block}
+ .rawaa-brand .rawaa-home-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:23px}
+ .rawaa-brand .rawaa-home-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 19px;border:1px solid #b9cdbd70;border-radius:11px;color:#fffdf5;text-decoration:none;font-weight:650;font-size:14px}
+ .rawaa-brand .rawaa-home-actions a:first-child{background:#e5d2a7;color:#193f35;border-color:#e5d2a7}
+ .rawaa-brand .rawaa-home-monthly{background:#eaf0e5;border:1px solid #d8e1d1;border-radius:20px;padding:24px;margin-top:25px}
+ .rawaa-brand .rawaa-home-monthly[hidden]{display:none}
+ .rawaa-brand .rawaa-home-monthly>label{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:16px;font-size:20px}
+ .rawaa-brand .rawaa-home-monthly input{width:auto;max-width:190px;min-width:0;background:#fffefb}
+ .rawaa-brand .rawaa-home-monthly>.plain{margin-top:16px;background:transparent;border:0;padding-inline:0}
+ .rawaa-brand #rawaa-home-month-stats .rawaa-easy-metric:last-child{background:#174a3c;border-color:#174a3c}
+ .rawaa-brand #rawaa-home-month-stats .rawaa-easy-metric:last-child small{color:#d7e4d8}
+ .rawaa-brand #rawaa-home-month-stats .rawaa-easy-metric:last-child strong{color:#f4e8ce}
+ .rawaa-brand main>section:not(.rawaa-easy-home){padding-top:18px}
+ .rawaa-brand main>section>h2{font-size:26px;margin-bottom:12px}
+ .rawaa-brand main input,.rawaa-brand main select,.rawaa-brand main textarea{font-size:16px;min-height:48px;border-color:#cbd7c8;border-radius:11px;background:#fffefb;max-width:100%;box-sizing:border-box}
+ .rawaa-brand main button.primary{border-radius:11px;min-height:48px;padding:12px 22px}
+ .rawaa-brand main button.outline{border-color:#cbd7c8;min-height:44px;border-radius:10px}
+ .rawaa-brand main .formgrid{gap:18px}
+ .rawaa-brand #staff-manage-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:16px}
+ .rawaa-brand #staff-manage-cards .staff-manage-card{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:22px;background:#fffefb;border:1px solid #dce4d6;border-radius:18px;align-items:center}
+ .rawaa-brand .staff-manage-card .staff-symbol{grid-column:1;width:52px;height:52px;background:#eaf0e2;color:#315d43;border-radius:17px;display:grid;place-items:center;font-size:25px}
+ .rawaa-brand .staff-manage-card .staff-details{grid-column:2/-1;min-width:0;overflow-wrap:anywhere}
+ .rawaa-brand .staff-manage-card .staff-details strong{font-size:18px}
+ .rawaa-brand .staff-manage-card .staff-details small{line-height:1.8;color:#667660}
+ .rawaa-brand .staff-manage-card button{margin:8px 0 0;padding:9px 4px;font-size:12px;width:100%}
+ .rawaa-brand .staff-manage-card button[data-delete-staff]{color:#954e40;border-color:#ead4cb}
+ .rawaa-brand .staff-manage-card .staff-inline-rename{grid-column:1/-1}
+ .rawaa-brand #live-employee-cards .employeehead{padding-bottom:16px;border-bottom:1px solid #e4e9de}
+ .rawaa-brand #live-employee-cards .avatar{background:#eaf0e2;border-radius:16px;width:52px;height:52px}
+ .rawaa-brand #live-employee-cards .plain{display:flex;justify-content:center;margin-top:20px;background:#f1f5ec;min-height:46px}
+ .rawaa-brand main table th{background:#edf2e7;color:#426044;font-weight:650;padding:14px 10px}
+ .rawaa-brand main table td{padding:13px 10px}
+ .rawaa-brand main table tbody tr:nth-child(even){background:#f7f8f1}
+ .rawaa-brand main table tbody tr:hover{background:#eef3e7}
+ .rawaa-brand main .overflow,.rawaa-brand main .tablewrap{border:1px solid #dce4d6;border-radius:12px;background:#fffefb}
+ @media(min-width:1100px){.rawaa-brand .rawaa-easy-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+ @media(max-width:600px){
+  .rawaa-brand .rawaa-home-monthly{padding:18px 12px;border-radius:16px}
+  .rawaa-brand .rawaa-home-monthly>label{font-size:16px;gap:8px}
+  .rawaa-brand .rawaa-home-monthly input{max-width:155px;font-size:16px}
+  .rawaa-brand .rawaa-home-actions a{flex:1 1 150px}
+  .rawaa-brand .rawaa-easy-shortcuts{grid-template-columns:1fr}
+  .rawaa-brand .rawaa-easy-shortcut{min-height:76px;padding:15px 18px}
+  .rawaa-brand .rawaa-easy-shortcut-copy strong{font-size:16px}
+  .rawaa-brand .rawaa-easy-shortcut::after{content:'←';margin-inline-start:auto;color:#78916b}
+  .rawaa-brand main>section>h2{font-size:23px}
+ }
+}
+@media screen {
+ .rawaa-brand .rawaa-v18-note{display:none}
+ .rawaa-brand #cloud-control-bar{gap:8px 14px;padding:12px 18px}
+ .rawaa-brand #cloud-control-bar>small{overflow-wrap:anywhere}
+ .rawaa-brand .rawaa-account-menu{width:100%;border-top:1px solid #d5dfcd;padding-top:5px}
+ .rawaa-brand .rawaa-account-menu>summary{cursor:pointer;min-height:44px;display:list-item;align-content:center;color:#426047;font-size:13px;font-weight:650;list-style-position:inside}
+ .rawaa-brand .rawaa-account-menu>summary:focus-visible{outline:3px solid #b99c62;outline-offset:2px;border-radius:7px}
+ .rawaa-brand .rawaa-account-menu[open] .rawaa-cloud-actions{padding:8px 0}
+}

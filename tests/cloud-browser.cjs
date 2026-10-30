@@ -246,6 +246,7 @@ const server=http.createServer((req,res)=>{try{
   await phone.route('https://esm.sh/**',route=>route.fulfill({status:200,contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:'export const createClient = ()=>window.__fakeCloudClient;'}));
   const phonePage=await phone.newPage();
   await phonePage.goto(base+'/cloud.html',{waitUntil:'domcontentloaded'});
+  await phonePage.locator('#rawaa-account-menu summary').click();
   await phonePage.locator('#cloud-manager-change-button').click();
   const metrics=await phonePage.evaluate(()=>{
     const overlay=document.getElementById('cloud-manager-transfer'),dialog=overlay.querySelector('.rawaa-cloud-dialog'),check=overlay.querySelector('#cloud-manager-file-saved');

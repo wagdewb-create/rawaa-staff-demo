@@ -56,9 +56,14 @@
  const dashboard=make('section',undefined,'rawaa-easy-home');
  dashboard.id='rawaa-easy-home';dashboard.setAttribute('aria-label','الاختصارات');
  const intro=make('div',undefined,'rawaa-easy-hero');
- const head=make('h2','كل ما تحتاجه لإدارة رواء');
- const hint=make('p','اختر القسم مباشرة. جميع التغييرات تحفظ داخل حساب RAWAA نفسه، سواء فتحت البرنامج من الآيفون أو الحاسوب.');
- intro.append(head,hint);
+ const dateLabel=make('small',new Intl.DateTimeFormat('ar-PS',{dateStyle:'full',timeZone:'Asia/Hebron'}).format(new Date()),'rawaa-home-date');
+ const head=make('h2','يوم منظّم، وفريق مطمئن');
+ const hint=make('p','تابع دوام فريقك، وسجّل السحوبات، وراجع حسابات الشهر من مكان واحد.');
+ const heroActions=make('div',undefined,'rawaa-home-actions');
+ for(const [id,label] of [['attendance','+ تسجيل دوام'],['monthly-ledger','السحوبات والحسابات ←']]){
+  const link=make('a',label);link.href='#'+id;heroActions.append(link);
+ }
+ intro.append(dateLabel,head,hint,heroActions);
  const overview=make('div',undefined,'rawaa-easy-overview');overview.id='rawaa-easy-overview';
  const shortcuts=make('div',undefined,'rawaa-easy-shortcuts');
  shortcuts.id='rawaa-easy-shortcuts';
@@ -72,7 +77,17 @@
   content.append(make('strong',row[1]),make('small',row[3]));
   a.append(icon,content);shortcuts.append(a);
  }
- dashboard.append(intro,overview,make('h3','الأقسام الأساسية'),shortcuts);
+ const monthly=make('div',undefined,'rawaa-home-monthly');
+ const monthLabel=make('label','ملخص الشهر');
+ const monthInput=make('input');monthInput.type='month';monthInput.id='rawaa-home-month';
+ monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);
+ monthLabel.append(monthInput);
+ const monthStats=make('div',undefined,'rawaa-easy-overview');monthStats.id='rawaa-home-month-stats';monthStats.setAttribute('aria-live','polite');
+ const monthLink=make('a','عرض الحساب الشهري بالتفصيل ←','plain');monthLink.href='#monthly-ledger';
+ monthLink.addEventListener('click',()=>{const target=$('fin-month');if(target){target.value=monthInput.value;if($('fin-filter'))$('fin-filter').value='all';target.dispatchEvent(new Event('change'));}});
+ monthly.append(monthLabel,monthStats,monthLink);
+ monthInput.addEventListener('change',()=>{if(!/^\d{4}-\d{2}$/.test(monthInput.value))monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);refreshOverview();});
+ dashboard.append(intro,make('h3','نظرة على اليوم'),overview,monthly,make('h3','مساحة العمل'),shortcuts);
  main.insertBefore(dashboard,toolbar.nextSibling);
  // The desktop sidebar reuses the original navigation links.
  const searchWrapper=make('label',undefined,'rawaa-easy-nav-search');
@@ -116,29 +131,32 @@
  function format(value){return Number(value||0).toLocaleString('ar-PS',{maximumFractionDigits:2});}
  function refreshOverview(){
   overview.replaceChildren();
+  monthStats.replaceChildren();
   if(window.RAWAA_CLOUD_WORKSPACE?.isNewEmptyWorkspace){
    const info=make('p','الحساب الحالي جديد ولم تُستعد بيانات الموظفين بعد. أكّد البريد واستعد النسخة المشفّرة قبل بدء العمل.','rawaa-easy-empty');
-   overview.append(info);return;
+   overview.append(info);monthly.hidden=true;return;
   }
+  monthly.hidden=false;
   const staff=window.RAWAA_STAFF?.getAll?.()||[];
   const current=window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10);
-  const month=current.slice(0,7);
+  const month=monthInput.value;
   const attendance=window.RAWAA_ATTENDANCE_BRIDGE?.getCalculated?.()||[];
   const entries=attendance.filter(row=>row.date===current);
   const salary=window.RAWAA_FINANCE_TEST?.sumMonthly;
-  let total=0;
+  let total=0,normal=0,extra=0,withdrawals=0;
   if(typeof salary==='function'){
    for(const person of staff){
     const value=salary(person.id,month);
-    total+=Number(value?.remaining||0);
+    total+=Number(value?.remaining||0);normal+=Number(value?.normal||0);extra+=Number(value?.extra||0);withdrawals+=Number(value?.withdrawals||0);
    }
   }
   overview.append(
    metric('موظفون نشطون',format(staff.filter(x=>x.status==='active').length)),
    metric('ورديات اليوم المسجلة',format(entries.length)),
    metric('ساعات اليوم المسجلة',format(entries.reduce((a,x)=>a+Number(x.duration||0),0))),
-   metric('متبقي الرواتب هذا الشهر',format(total)+' ₪')
+   metric('موظفون لديهم سجل اليوم',format(new Set(entries.map(x=>x.employeeId)).size))
   );
+  monthStats.append(metric('ساعات أساسية',format(normal)),metric('ساعات إضافية',format(extra)),metric('السحوبات',format(withdrawals)+' ₪'),metric('المتبقي للدفع',format(total)+' ₪'));
   const note=make('p','المؤشرات مأخوذة من السجلات الموجودة في الحساب المفتوح؛ عدم تسجيل دوام لا يعني الغياب.','rawaa-easy-data-note');
   overview.append(note);
  }
@@ -155,6 +173,7 @@
  }
  function setMode(next,persist=true){
   view=next==='full'?'full':'easy';
+  const account=$('rawaa-account-menu');if(account)account.open=view==='full';
   document.body.classList.toggle('rawaa-easy-view',view==='easy');
   document.body.classList.toggle('rawaa-all-view',view==='full');
   full.textContent=view==='easy'?'عرض كل الأقسام':'العودة للعرض المبسط';

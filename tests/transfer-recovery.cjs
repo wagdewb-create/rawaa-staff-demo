@@ -48,6 +48,7 @@ const server=http.createServer((req,res)=>{
   page.on('pageerror',e=>errors.push(e.message));
   page.on('dialog',d=>d.type()==='prompt'?d.accept('safe-backup-passphrase-2026'):d.accept());
   await page.goto(base+'/cloud.html',{waitUntil:'domcontentloaded'});
+  await page.locator('#rawaa-account-menu summary').click({timeout:16000});
   await page.locator('#cloud-manager-change-button').waitFor({timeout:16000});
   await page.locator('#cloud-manager-change-button').click();
   await page.locator('#cloud-manager-new-email').fill('newmanager@gmail.com');
