@@ -55,6 +55,21 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   const widths=await m.evaluate(()=>({screen:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,
    bottom:document.querySelector('#rawaa-mobile-tabs').getBoundingClientRect().width}));
   assert.ok(widths.document<=widths.screen+2,'no global sideways scrolling on iPhone: '+JSON.stringify(widths));
+  // Month selection changes only the view; historical months never create payroll writes.
+  const monthlyBefore=await m.evaluate(()=>localStorage.getItem('mock_nav_row'));
+  await m.locator('#rawaa-home-month').fill('2025-01');
+  await m.locator('#rawaa-home-month').dispatchEvent('change');
+  assert.equal(await m.locator('#rawaa-home-month-stats .rawaa-easy-metric').count(),4);
+  await m.locator('.rawaa-home-monthly>a').click();
+  assert.equal(await m.locator('#fin-month').inputValue(),'2025-01');
+  assert.equal(await m.locator('#monthly-ledger').isVisible(),true);
+  assert.equal(await m.evaluate(()=>localStorage.getItem('mock_nav_row')),monthlyBefore);
+  await m.locator('#rawaa-mobile-tabs a[href="#dashboard"]').click();
+  for(const width of [320,390,760]){
+   await m.setViewportSize({width,height:844});
+   assert.ok(await m.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+2),'home fits '+width);
+  }
+  await m.setViewportSize({width:375,height:812});
   await m.locator('#rawaa-mobile-more').click();
   assert.equal(await m.locator('#rawaa-easy-more-dialog').isVisible(),true);
   assert.equal(await m.locator('#rawaa-mobile-more').getAttribute('aria-expanded'),'true');
@@ -86,6 +101,11 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   const d=desktop.page;
   assert.equal(await d.locator('#employees').isVisible(),true,'desktop direct section deep link opens');
   assert.equal(await d.locator('#rawaa-mobile-tabs').isVisible(),false);
+  const firstPerson=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[0].id);
+  await d.locator('#live-employee-cards a').first().click();
+  assert.equal(await d.locator('#att-filter').inputValue(),firstPerson,'employee link opens their records');
+  assert.equal(await d.locator('#attendance-log').isVisible(),true);
+
   const desktopNav=await d.locator('nav[aria-label="أقسام رواء"]').evaluate(el=>({
    position:getComputedStyle(el).position,rect:el.getBoundingClientRect().toJSON(),
    main:document.querySelector('main').getBoundingClientRect().toJSON()
