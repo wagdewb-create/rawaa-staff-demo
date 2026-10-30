@@ -45,7 +45,7 @@ if([...s.options].some(x=>x.value===previous))s.value=previous;
 const sel=$('selected-employee');if(sel){const old=sel.selectedIndex;sel.replaceChildren();for(let i=0;i<staff.length;i++){const o=document.createElement('option');o.value=String(i);o.textContent=staff[i].name;sel.append(o)}sel.selectedIndex=Math.min(Math.max(old,0),staff.length-1);}
 }
 function notice(text,isError=false){const x=$('staff-feedback');if(x){x.className=isError?'error':'result';x.textContent=text}}
-function formClear(){editId=null;$('staff-form').reset();$('staff-status').value='active';$('staff-avatar').value='☾';$('staff-form-title').textContent='إضافة موظف تجريبي';$('staff-save').textContent='إضافة الموظف';$('staff-cancel').hidden=true;}
+function formClear(){editId=null;$('staff-form').reset();$('staff-status').value='active';$('staff-avatar').value='☾';$('staff-form-title').textContent=window.RAWAA_CLOUD_WORKSPACE?'إضافة موظف':'إضافة موظف تجريبي';$('staff-save').textContent='إضافة الموظف';$('staff-cancel').hidden=true;}
 function formFill(id){
 const p=staff.find(p=>p.id===id);if(!p)return;editId=id;
 for(const [k,c] of [['name','name'],['role','role'],['rate','rate'],['phone','phone'],['startDate','startDate'],['note','note'],['status','status'],['avatar','avatar']])$('staff-'+k).value=p[c]??'';
@@ -130,7 +130,7 @@ const avatar=document.createElement('div');avatar.className='staff-symbol';avata
 const details=document.createElement('div');details.className='staff-details';
 const name=document.createElement('strong');name.textContent=p.name;
 const meta=document.createElement('small');meta.textContent=(p.role||'بدون قسم')+' · '+p.rate+' ₪/ساعة · '+(p.status==='archived'?'مؤرشف':'نشط');
-details.append(name,meta);if(p.phone){const extra=document.createElement('small');extra.textContent='اتصال تجريبي: '+p.phone;details.append(extra)}
+details.append(name,meta);if(p.phone){const extra=document.createElement('small');extra.textContent=(window.RAWAA_CLOUD_WORKSPACE?'الهاتف: ':'اتصال تجريبي: ')+p.phone;details.append(extra)}
 const rename=document.createElement('button');rename.type='button';rename.className='outline';rename.textContent='تغيير الاسم';rename.dataset.renameStaff=p.id;
 const edit=document.createElement('button');edit.type='button';edit.className='outline';edit.textContent='تعديل';edit.dataset.editStaff=p.id;
 const archive=document.createElement('button');archive.type='button';archive.className='outline';archive.textContent=p.status==='archived'?'إعادة تفعيل':'أرشفة';archive.dataset.toggleStaff=p.id;

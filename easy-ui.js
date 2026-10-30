@@ -89,6 +89,42 @@
  monthInput.addEventListener('change',()=>{if(!/^\d{4}-\d{2}$/.test(monthInput.value))monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);refreshOverview();});
  dashboard.append(intro,make('h3','نظرة على اليوم'),overview,monthly,make('h3','مساحة العمل'),shortcuts);
  main.insertBefore(dashboard,toolbar.nextSibling);
+ // Directory filters affect only the visible cards, never the roster or payroll.
+ const staffCards=$('staff-manage-cards'),staffPanel=$('staff-manager');
+ if(staffCards&&staffPanel){
+  const directory=make('div',undefined,'rawaa-staff-directory');
+  const searchLabel=make('label','البحث عن موظف');
+  const staffSearch=make('input');staffSearch.type='search';staffSearch.id='rawaa-staff-search';staffSearch.placeholder='الاسم أو القسم';searchLabel.append(staffSearch);
+  const statusLabel=make('label','حالة الموظف');
+  const staffStatus=make('select');staffStatus.id='rawaa-staff-status';
+  for(const [value,label] of [['all','جميع الموظفين'],['active','النشطون'],['archived','المؤرشفون']]){const option=make('option',label);option.value=value;staffStatus.append(option);}
+  statusLabel.append(staffStatus);
+  const add=make('button','+ إضافة موظف','primary');add.type='button';add.id='rawaa-staff-add';
+  add.addEventListener('click',()=>{const cancel=$('staff-cancel');if(cancel&&!cancel.hidden){if(!confirm('فتح نموذج موظف جديد يلغي التعديلات غير المحفوظة في النموذج الحالي. هل تريد المتابعة؟'))return;cancel.click();}staffPanel.scrollIntoView({block:'start',behavior:'auto'});$('staff-name')?.focus({preventScroll:true});});
+  const count=make('p',undefined,'rawaa-directory-count');count.id='rawaa-directory-count';count.setAttribute('role','status');
+  const empty=make('div','لا يوجد موظفون يطابقون البحث أو الحالة المختارة.','rawaa-directory-empty');empty.id='rawaa-directory-empty';empty.hidden=true;
+  const clear=make('button','مسح البحث والتصفية','outline');clear.type='button';empty.append(clear);
+  directory.append(searchLabel,statusLabel,add,count);
+  staffCards.before(directory);staffCards.after(empty);
+  // Put the roster before the long editor; editing still uses the same form.
+  $('employees').append(staffPanel);
+  function filterStaff(){
+   const normalize=value=>String(value||'').normalize('NFKC').replace(/[\u064B-\u065F\u0670\u0640]/g,'').toLocaleLowerCase('ar').trim();
+   const query=normalize(staffSearch.value),status=staffStatus.value;
+   const people=window.RAWAA_STAFF?.getAll?.()||[];let visible=0;
+   for(const card of staffCards.children){
+    const id=card.querySelector('[data-edit-staff]')?.dataset.editStaff;
+    const person=people.find(p=>p.id===id);
+    const match=!!person&&(status==='all'||person.status===status)&&(!query||normalize(person.name+' '+person.role).includes(query));
+    card.hidden=!match;if(match)visible++;
+   }
+   count.textContent='عرض '+visible+' من '+people.length+' موظف';empty.hidden=visible>0;
+  }
+  staffSearch.addEventListener('input',filterStaff);staffStatus.addEventListener('change',filterStaff);
+  clear.addEventListener('click',()=>{staffSearch.value='';staffStatus.value='all';filterStaff();staffSearch.focus();});
+  document.addEventListener('rawaa:staff-changed',filterStaff);filterStaff();
+ }
+
  // The desktop sidebar reuses the original navigation links.
  const searchWrapper=make('label',undefined,'rawaa-easy-nav-search');
  searchWrapper.append(make('span','البحث عن قسم'));

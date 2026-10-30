@@ -107,6 +107,27 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   const d=desktop.page;
   assert.equal(await d.locator('#employees').isVisible(),true,'desktop direct section deep link opens');
   assert.equal(await d.locator('#rawaa-mobile-tabs').isVisible(),false);
+  const originalRoster=await d.evaluate(()=>JSON.stringify(window.RAWAA_STAFF.getAll()));
+  const personName=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[1].name);
+  const personRole=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[1].role);
+  await d.locator('#rawaa-staff-search').fill(personRole);
+  assert.equal(await d.locator('#staff-manage-cards article:not([hidden])').count(),1,'department search finds employees');
+  await d.locator('#rawaa-staff-search').fill(personName);
+  assert.equal(await d.locator('#staff-manage-cards article:not([hidden])').count(),1,'name search narrows the directory');
+  await d.locator('#rawaa-staff-status').selectOption('archived');
+  assert.equal(await d.locator('#rawaa-directory-empty').isVisible(),true);
+  await d.locator('#rawaa-directory-empty button').click();
+  assert.equal(await d.locator('#staff-manage-cards article:not([hidden])').count(),3,'clear restores the roster');
+  await d.locator('#rawaa-staff-search').fill('no-such-employee');
+  assert.equal(await d.locator('#rawaa-directory-empty').isVisible(),true);
+  await d.locator('#rawaa-directory-empty button').click();
+  await d.locator('#rawaa-staff-add').click();
+  assert.equal(await d.evaluate(()=>document.activeElement.id),'staff-name','add shortcut focuses the editor');
+  assert.equal(await d.evaluate(()=>JSON.stringify(window.RAWAA_STAFF.getAll())),originalRoster,'directory filters never mutate staff data');
+  for(const width of [320,390,760,1440]){
+   await d.setViewportSize({width,height:900});
+   assert.ok(await d.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+2),'employee page fits '+width);
+  }
   const firstPerson=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[0].id);
   await d.locator('#live-employee-cards a').first().click();
   assert.equal(await d.locator('#att-filter').inputValue(),firstPerson,'employee link opens their records');
