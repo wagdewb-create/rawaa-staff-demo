@@ -170,3 +170,16 @@
  .rawaa-brand .rawaa-account-menu>summary:focus-visible{outline:3px solid #b99c62;outline-offset:2px;border-radius:7px}
  .rawaa-brand .rawaa-account-menu[open] .rawaa-cloud-actions{padding:8px 0}
 }
+@media screen {
+ .rawaa-brand .rawaa-staff-directory{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) auto;align-items:end;gap:14px;padding:20px;background:#eaf0e5;border:1px solid #d8e1d1;border-radius:16px;margin:16px 0}
+ .rawaa-brand .rawaa-directory-count{grid-column:1/-1;margin:0;font-size:13px;color:#52694e}
+ .rawaa-brand #staff-manage-cards .staff-manage-card[hidden],.rawaa-brand .rawaa-directory-empty[hidden]{display:none!important}
+ .rawaa-brand .rawaa-directory-empty{padding:28px;text-align:center;border:1px dashed #bdcdb5;border-radius:16px;background:#fffefb;line-height:1.9}
+ .rawaa-brand .rawaa-directory-empty button{display:block;margin:16px auto 0}
+ .rawaa-brand #staff-manager{scroll-margin-top:100px;margin-top:32px}
+ @media(max-width:600px){
+  .rawaa-brand .rawaa-staff-directory{grid-template-columns:1fr 1fr;padding:15px;gap:12px}
+  .rawaa-brand .rawaa-staff-directory>label:first-child{grid-column:1/-1}
+  .rawaa-brand .rawaa-staff-directory>button{font-size:14px;padding:12px}
+ }
+}
