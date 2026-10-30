@@ -526,7 +526,9 @@ window.RAWAA_CLOUD_STORAGE=localStorage;
    if(localRev!==storedRev){await flush();if(stopped)return;}
    await client.auth.signOut();location.reload();
   };
-  actions.append(security,changeManager,backup,restore,restoreInput,importOld,refresh,signOut);bar.append(h,userInfo,status,actions);
+  actions.append(security,changeManager,backup,restore,restoreInput,importOld,refresh,signOut);
+  const account=item('details',undefined,'rawaa-account-menu');account.id='rawaa-account-menu';
+  const summary=item('summary','إدارة الحساب');account.append(summary,actions);bar.append(h,userInfo,status,account);
   const main=document.querySelector('main');if(main)document.body.insertBefore(bar,main);else document.body.prepend(bar);
  }
  function style(){

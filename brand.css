@@ -161,3 +161,12 @@
   .rawaa-brand main>section>h2{font-size:23px}
  }
 }
+@media screen {
+ .rawaa-brand .rawaa-v18-note{display:none}
+ .rawaa-brand #cloud-control-bar{gap:8px 14px;padding:12px 18px}
+ .rawaa-brand #cloud-control-bar>small{overflow-wrap:anywhere}
+ .rawaa-brand .rawaa-account-menu{width:100%;border-top:1px solid #d5dfcd;padding-top:5px}
+ .rawaa-brand .rawaa-account-menu>summary{cursor:pointer;min-height:44px;display:list-item;align-content:center;color:#426047;font-size:13px;font-weight:650;list-style-position:inside}
+ .rawaa-brand .rawaa-account-menu>summary:focus-visible{outline:3px solid #b99c62;outline-offset:2px;border-radius:7px}
+ .rawaa-brand .rawaa-account-menu[open] .rawaa-cloud-actions{padding:8px 0}
+}

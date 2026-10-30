@@ -51,6 +51,10 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   assert.equal(await m.locator('#rawaa-mobile-tabs').isVisible(),true,'bottom navigation displayed on mobile');
   assert.equal(await m.locator('nav[aria-label="أقسام رواء"]').isVisible(),false,'long navigation hidden on iPhone');
   assert.equal(await m.locator('#rawaa-easy-home').isVisible(),true);
+  assert.equal(await m.locator('#cloud-manager-change-button').isVisible(),false,'account actions start collapsed');
+  await m.locator('#rawaa-account-menu summary').click();
+  assert.equal(await m.locator('#cloud-manager-change-button').isVisible(),true);
+  await m.locator('#rawaa-account-menu summary').click();
   assert.equal(await m.locator('#attendance').isVisible(),false,'sections are initially collapsed');
   const widths=await m.evaluate(()=>({screen:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,
    bottom:document.querySelector('#rawaa-mobile-tabs').getBoundingClientRect().width}));

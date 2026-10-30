@@ -60,7 +60,7 @@
  const head=make('h2','يوم منظّم، وفريق مطمئن');
  const hint=make('p','تابع دوام فريقك، وسجّل السحوبات، وراجع حسابات الشهر من مكان واحد.');
  const heroActions=make('div',undefined,'rawaa-home-actions');
- for(const [id,label] of [['attendance','＋ تسجيل دوام'],['monthly-ledger','السحوبات والحسابات ←']]){
+ for(const [id,label] of [['attendance','+ تسجيل دوام'],['monthly-ledger','السحوبات والحسابات ←']]){
   const link=make('a',label);link.href='#'+id;heroActions.append(link);
  }
  intro.append(dateLabel,head,hint,heroActions);
@@ -173,6 +173,7 @@
  }
  function setMode(next,persist=true){
   view=next==='full'?'full':'easy';
+  const account=$('rawaa-account-menu');if(account)account.open=view==='full';
   document.body.classList.toggle('rawaa-easy-view',view==='easy');
   document.body.classList.toggle('rawaa-all-view',view==='full');
   full.textContent=view==='easy'?'عرض كل الأقسام':'العودة للعرض المبسط';
