@@ -60,7 +60,9 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   await m.locator('#rawaa-home-month').fill('2025-01');
   await m.locator('#rawaa-home-month').dispatchEvent('change');
   assert.equal(await m.locator('#rawaa-home-month-stats .rawaa-easy-metric').count(),4);
+  await m.evaluate(()=>document.getElementById('fin-filter').value=window.RAWAA_STAFF.getAll()[0].id);
   await m.locator('.rawaa-home-monthly>a').click();
+  assert.equal(await m.locator('#fin-filter').inputValue(),'all','monthly overview opens the same complete roster');
   assert.equal(await m.locator('#fin-month').inputValue(),'2025-01');
   assert.equal(await m.locator('#monthly-ledger').isVisible(),true);
   assert.equal(await m.evaluate(()=>localStorage.getItem('mock_nav_row')),monthlyBefore);

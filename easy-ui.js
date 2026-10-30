@@ -84,7 +84,7 @@
  monthLabel.append(monthInput);
  const monthStats=make('div',undefined,'rawaa-easy-overview');monthStats.id='rawaa-home-month-stats';monthStats.setAttribute('aria-live','polite');
  const monthLink=make('a','عرض الحساب الشهري بالتفصيل ←','plain');monthLink.href='#monthly-ledger';
- monthLink.addEventListener('click',()=>{const target=$('fin-month');if(target){target.value=monthInput.value;target.dispatchEvent(new Event('change'));}});
+ monthLink.addEventListener('click',()=>{const target=$('fin-month');if(target){target.value=monthInput.value;if($('fin-filter'))$('fin-filter').value='all';target.dispatchEvent(new Event('change'));}});
  monthly.append(monthLabel,monthStats,monthLink);
  monthInput.addEventListener('change',()=>{if(!/^\d{4}-\d{2}$/.test(monthInput.value))monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);refreshOverview();});
  dashboard.append(intro,make('h3','نظرة على اليوم'),overview,monthly,make('h3','مساحة العمل'),shortcuts);
