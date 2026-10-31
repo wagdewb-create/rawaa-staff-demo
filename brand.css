@@ -183,3 +183,15 @@
   .rawaa-brand .rawaa-staff-directory>button{font-size:14px;padding:12px}
  }
 }
+@media screen {
+ .rawaa-brand .rawaa-month-controls{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 0}
+ .rawaa-brand .rawaa-month-caption{margin-inline-end:auto;color:#426047;font-size:14px}
+ .rawaa-brand .rawaa-month-controls button{min-height:44px;border:1px solid #cbd7c8;border-radius:9px;background:#fffefb;color:#315d43;padding:9px 13px;font:inherit;font-size:13px;cursor:pointer}
+ .rawaa-brand .rawaa-month-controls button[data-month-current]{background:#174a3c;color:white;border-color:#174a3c}
+ .rawaa-brand .rawaa-month-controls button:disabled{opacity:.4;cursor:default}
+ .rawaa-brand .rawaa-employee-period{padding:18px;background:#eaf0e5;border:1px solid #d8e1d1;border-radius:15px;margin:14px 0}
+ .rawaa-brand .rawaa-employee-period>label{grid-row:1}
+ .rawaa-brand .rawaa-employee-period>.rawaa-month-controls{grid-row:2;padding-bottom:0}
+ @media(max-width:600px){.rawaa-brand .rawaa-month-caption{width:100%;margin:0 0 4px}.rawaa-brand .rawaa-month-controls button{flex:1;padding:8px 5px;font-size:12px}.rawaa-brand .rawaa-employee-period{grid-template-columns:1fr}.rawaa-brand .rawaa-employee-period>label,.rawaa-brand .rawaa-employee-period>.rawaa-month-controls{grid-row:auto}}
+}
+@media print{.rawaa-month-controls,.rawaa-employee-period{display:none!important}}

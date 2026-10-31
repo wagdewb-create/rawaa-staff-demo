@@ -84,9 +84,9 @@
  monthLabel.append(monthInput);
  const monthStats=make('div',undefined,'rawaa-easy-overview');monthStats.id='rawaa-home-month-stats';monthStats.setAttribute('aria-live','polite');
  const monthLink=make('a','عرض الحساب الشهري بالتفصيل ←','plain');monthLink.href='#monthly-ledger';
- monthLink.addEventListener('click',()=>{const target=$('fin-month');if(target){target.value=monthInput.value;if($('fin-filter'))$('fin-filter').value='all';target.dispatchEvent(new Event('change'));}});
+ monthLink.addEventListener('click',()=>{const target=$('fin-month');if(target){target.value=monthInput.value;if($('fin-filter')){$('fin-filter').value='all';$('fin-filter').dispatchEvent(new Event('change',{bubbles:true}));}target.dispatchEvent(new Event('change'));}});
  monthly.append(monthLabel,monthStats,monthLink);
- monthInput.addEventListener('change',()=>{if(!/^\d{4}-\d{2}$/.test(monthInput.value))monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);refreshOverview();});
+ monthInput.addEventListener('change',()=>{if(monthNumber(monthInput.value)===null){monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);monthInput.dispatchEvent(new Event('change',{bubbles:true}));return;}refreshOverview();});
  dashboard.append(intro,make('h3','نظرة على اليوم'),overview,monthly,make('h3','مساحة العمل'),shortcuts);
  main.insertBefore(dashboard,toolbar.nextSibling);
  // Directory filters affect only the visible cards, never the roster or payroll.
@@ -125,6 +125,39 @@
   document.addEventListener('rawaa:staff-changed',filterStaff);filterStaff();
  }
 
+
+ // Visible filters for employee financial cards share the existing report selectors.
+ const financialCards=$('live-employee-cards');
+ if(financialCards&&$('dash-month')&&$('dash-filter')){
+  const filters=make('div',undefined,'rawaa-employee-period formgrid');
+  const periodLabel=make('label','شهر الملخص المالي'),employeeLabel=make('label','الموظف في الملخص');
+  const period=make('input');period.type='month';period.id='rawaa-employee-month';period.value=$('dash-month').value;
+  const employee=make('select');employee.id='rawaa-employee-filter';
+  function refreshFinancialEmployees(){employee.replaceChildren(...[...$('dash-filter').options].map(option=>option.cloneNode(true)));employee.value=$('dash-filter').value;}
+  refreshFinancialEmployees();document.addEventListener('rawaa:staff-changed',refreshFinancialEmployees);
+  periodLabel.append(period);employeeLabel.append(employee);filters.append(periodLabel,employeeLabel);financialCards.before(filters);
+ }
+ const monthInputs=['rawaa-home-month','rawaa-employee-month','att-month','fin-month','review-month','payslip-month'];
+ const monthNames=['كانون الثاني','شباط','آذار','نيسان','أيار','حزيران','تموز','آب','أيلول','تشرين الأول','تشرين الثاني','كانون الأول'];
+ function monthNumber(value){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(value)||Number(value.slice(0,4))<1)return null;return Number(value.slice(0,4))*12+Number(value.slice(5))-1;}
+ for(const id of monthInputs){
+  const input=$(id);if(!input)continue;input.min='0001-01';input.max='9999-12';
+  const controls=make('div',undefined,'rawaa-month-controls');controls.id=id+'-controls';controls.setAttribute('role','group');controls.setAttribute('aria-label','التنقل بين الأشهر');
+  const caption=make('strong',undefined,'rawaa-month-caption');caption.setAttribute('aria-live','polite');
+  const prev=make('button','الشهر السابق'),current=make('button','الشهر الحالي'),next=make('button','الشهر التالي');
+  for(const button of [prev,current,next])button.type='button';
+  prev.dataset.monthStep='-1';next.dataset.monthStep='1';current.dataset.monthCurrent='true';
+  function renderMonth(){const n=monthNumber(input.value);caption.textContent=n===null?'اختر شهرًا للمراجعة':monthNames[n%12]+' '+input.value.slice(0,4);prev.disabled=n===null||n<=12;next.disabled=n===null||n>=119999;}
+  function chooseMonth(value){input.value=value;input.dispatchEvent(new Event('change',{bubbles:true}));renderMonth();}
+  function step(delta){const n=monthNumber(input.value);if(n===null||n+delta<12||n+delta>119999)return;const target=n+delta;chooseMonth(String(Math.floor(target/12)).padStart(4,'0')+'-'+String(target%12+1).padStart(2,'0'));}
+  prev.addEventListener('click',()=>step(-1));next.addEventListener('click',()=>step(1));
+  current.addEventListener('click',()=>chooseMonth((window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7)));
+  controls.append(caption,prev,current,next);const label=input.closest('label');if(label.parentElement.classList.contains('formgrid'))label.parentElement.append(controls);else label.after(controls);
+  input.addEventListener('change',renderMonth);
+  document.addEventListener('rawaa:attendance-changed',renderMonth);renderMonth();
+ }
+ // Report selectors may change the shared month while the home page is hidden.
+ document.addEventListener('change',event=>{if(monthInputs.includes(event.target?.id))refreshOverview();});
  // The desktop sidebar reuses the original navigation links.
  const searchWrapper=make('label',undefined,'rawaa-easy-nav-search');
  searchWrapper.append(make('span','البحث عن قسم'));
@@ -209,7 +242,7 @@
  }
  function setMode(next,persist=true){
   view=next==='full'?'full':'easy';
-  const account=$('rawaa-account-menu');if(account)account.open=view==='full';
+  const account=$('rawaa-account-menu');if(account&&(persist||view==='full'))account.open=view==='full';
   document.body.classList.toggle('rawaa-easy-view',view==='easy');
   document.body.classList.toggle('rawaa-all-view',view==='full');
   full.textContent=view==='easy'?'عرض كل الأقسام':'العودة للعرض المبسط';
