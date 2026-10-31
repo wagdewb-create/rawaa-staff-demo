@@ -242,7 +242,7 @@
  }
  function setMode(next,persist=true){
   view=next==='full'?'full':'easy';
-  const account=$('rawaa-account-menu');if(account)account.open=view==='full';
+  const account=$('rawaa-account-menu');if(account&&(persist||view==='full'))account.open=view==='full';
   document.body.classList.toggle('rawaa-easy-view',view==='easy');
   document.body.classList.toggle('rawaa-all-view',view==='full');
   full.textContent=view==='easy'?'عرض كل الأقسام':'العودة للعرض المبسط';

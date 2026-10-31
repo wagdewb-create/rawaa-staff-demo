@@ -54,6 +54,8 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   assert.equal(await m.locator('#cloud-manager-change-button').isVisible(),false,'account actions start collapsed');
   await m.locator('#rawaa-account-menu summary').click();
   assert.equal(await m.locator('#cloud-manager-change-button').isVisible(),true);
+  await m.evaluate(()=>window.RAWAA_EASY_UI_TEST.setMode('easy',false));
+  assert.equal(await m.locator('#cloud-manager-change-button').isVisible(),true,'initialization preserves an account menu the user already opened');
   await m.locator('#rawaa-account-menu summary').click();
   assert.equal(await m.locator('#attendance').isVisible(),false,'sections are initially collapsed');
   const widths=await m.evaluate(()=>({screen:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,
