@@ -64,6 +64,12 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   await m.locator('#rawaa-home-month').fill('2025-01');
   await m.locator('#rawaa-home-month').dispatchEvent('change');
   assert.equal(await m.locator('#rawaa-home-month-stats .rawaa-easy-metric').count(),4);
+  await m.locator('#rawaa-home-month-controls [data-month-step="-1"]').click();
+  assert.equal(await m.locator('#rawaa-home-month').inputValue(),'2024-12','previous month crosses year boundary');
+  assert.equal(await m.locator('#fin-month').inputValue(),'2024-12','report month follows home selection');
+  await m.locator('#rawaa-home-month-controls [data-month-step="1"]').click();
+  assert.equal(await m.locator('#rawaa-home-month').inputValue(),'2025-01','next month crosses year boundary');
+
   await m.evaluate(()=>document.getElementById('fin-filter').value=window.RAWAA_STAFF.getAll()[0].id);
   await m.locator('.rawaa-home-monthly>a').click();
   assert.equal(await m.locator('#fin-filter').inputValue(),'all','monthly overview opens the same complete roster');
@@ -107,6 +113,16 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   const d=desktop.page;
   assert.equal(await d.locator('#employees').isVisible(),true,'desktop direct section deep link opens');
   assert.equal(await d.locator('#rawaa-mobile-tabs').isVisible(),false);
+  await d.locator('#rawaa-employee-month').fill('2024-02');
+  await d.locator('#rawaa-employee-month').dispatchEvent('change');
+  assert.equal(await d.locator('#dash-month').inputValue(),'2024-02');
+  assert.equal(await d.locator('#rawaa-home-month').inputValue(),'2024-02');
+  await d.locator('#rawaa-employee-filter').selectOption('002');
+  assert.equal(await d.locator('#live-employee-cards article').count(),1,'visible employee filter narrows financial cards');
+  assert.equal(await d.locator('#dash-filter').inputValue(),'002');
+  await d.locator('#rawaa-employee-filter').selectOption('all');
+  await d.locator('#rawaa-employee-month-controls [data-month-current]').click();
+  assert.equal(await d.locator('#rawaa-employee-month').inputValue(),await d.evaluate(()=>window.RAWAA_RESTAURANT_TODAY().slice(0,7)));
   const originalRoster=await d.evaluate(()=>JSON.stringify(window.RAWAA_STAFF.getAll()));
   const personName=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[1].name);
   const personRole=await d.evaluate(()=>window.RAWAA_STAFF.getAll()[1].role);
@@ -153,6 +169,7 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   await d.emulateMedia({media:'print'});
   assert.equal(await d.locator('#payslip').evaluate(el=>getComputedStyle(el).display),'block','print can display payslip in easy mode');
   assert.equal(await d.locator('#rawaa-easy-toolbar').evaluate(el=>getComputedStyle(el).display),'none','print suppresses navigation');
+  assert.equal(await d.locator('#payslip-month-controls').isVisible(),false,'month navigation stays out of printed payslips');
   await d.emulateMedia({media:'screen'});
   assert.deepEqual(desktop.errors,[],desktop.errors.join('; '));
   await desktop.context.close();
