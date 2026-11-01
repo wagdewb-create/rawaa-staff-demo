@@ -87,7 +87,31 @@
  monthLink.addEventListener('click',()=>{const target=$('fin-month');if(target){target.value=monthInput.value;if($('fin-filter')){$('fin-filter').value='all';$('fin-filter').dispatchEvent(new Event('change',{bubbles:true}));}target.dispatchEvent(new Event('change'));}});
  monthly.append(monthLabel,monthStats,monthLink);
  monthInput.addEventListener('change',()=>{if(monthNumber(monthInput.value)===null){monthInput.value=(window.RAWAA_RESTAURANT_TODAY?.()||new Date().toISOString().slice(0,10)).slice(0,7);monthInput.dispatchEvent(new Event('change',{bubbles:true}));return;}refreshOverview();});
- dashboard.append(intro,make('h3','نظرة على اليوم'),overview,monthly,make('h3','مساحة العمل'),shortcuts);
+ const history=make('details',undefined,'rawaa-month-history');history.id='rawaa-month-history';
+ history.append(make('summary','سجل الأشهر السابقة'));
+ const historyLabel=make('label','السنة'),historyYear=make('select');historyYear.id='rawaa-history-year';historyLabel.append(historyYear);
+ const historyNote=make('p','الأشهر التي تحتوي على دوام أو حركات مالية في الحساب المفتوح. تُنسب الوردية الليلية إلى تاريخ بدايتها.','hint');
+ const historyList=make('div',undefined,'rawaa-history-list');historyList.id='rawaa-history-list';
+ const historyEmpty=make('p','لا توجد سجلات دوام أو حركات مالية لعرضها بعد.','hint');historyEmpty.setAttribute('role','status');
+ history.append(historyNote,historyLabel,historyList,historyEmpty);
+ historyYear.addEventListener('change',refreshHistory);
+ function refreshHistory(){
+  const months=new Map();
+  const get=date=>{const key=String(date||'').slice(0,7);if(monthNumber(key)===null)return null;if(!months.has(key))months.set(key,{shifts:0,hours:0,transactions:0});return months.get(key);};
+  for(const row of window.RAWAA_ATTENDANCE_BRIDGE?.getCalculated?.()||[]){const item=get(row.date);if(item){item.shifts++;item.hours+=Number(row.duration||0);}}
+  for(const row of window.RAWAA_FINANCE_TEST?.getTransactions?.()||[]){const item=get(row.date);if(item)item.transactions++;}
+  const years=[...new Set([...months.keys()].map(key=>key.slice(0,4)))].sort().reverse(),previous=historyYear.value;
+  historyYear.replaceChildren(...years.map(year=>{const option=make('option',year);option.value=year;return option;}));
+  historyYear.value=years.includes(previous)?previous:(years[0]||'');
+  historyLabel.hidden=years.length===0;historyEmpty.hidden=months.size>0;historyList.replaceChildren();
+  for(const key of [...months.keys()].sort().reverse().filter(key=>key.startsWith(historyYear.value+'-'))){
+   const value=months.get(key),card=make('a',undefined,'rawaa-history-card');card.href='#monthly-ledger';card.dataset.historyMonth=key;
+   card.append(make('strong',monthNames[Number(key.slice(5))-1]+' '+key.slice(0,4)),make('span',format(value.shifts)+' وردية · '+format(value.hours)+' ساعة'),make('small',format(value.transactions)+' حركة مالية'),make('span','فتح حساب الشهر ←','rawaa-history-open'));
+   card.addEventListener('click',()=>{monthInput.value=key;monthInput.dispatchEvent(new Event('change',{bubbles:true}));const filter=$('fin-filter');if(filter){filter.value='all';filter.dispatchEvent(new Event('change',{bubbles:true}));}});
+   historyList.append(card);
+  }
+ }
+ dashboard.append(intro,make('h3','نظرة على اليوم'),overview,monthly,history,make('h3','مساحة العمل'),shortcuts);
  main.insertBefore(dashboard,toolbar.nextSibling);
  // Directory filters affect only the visible cards, never the roster or payroll.
  const staffCards=$('staff-manage-cards'),staffPanel=$('staff-manager');
@@ -199,6 +223,8 @@
  }
  function format(value){return Number(value||0).toLocaleString('ar-PS',{maximumFractionDigits:2});}
  function refreshOverview(){
+  refreshHistory();
+  history.hidden=!!window.RAWAA_CLOUD_WORKSPACE?.isNewEmptyWorkspace;
   overview.replaceChildren();
   monthStats.replaceChildren();
   if(window.RAWAA_CLOUD_WORKSPACE?.isNewEmptyWorkspace){

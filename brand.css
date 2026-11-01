@@ -195,3 +195,15 @@
  @media(max-width:600px){.rawaa-brand .rawaa-month-caption{width:100%;margin:0 0 4px}.rawaa-brand .rawaa-month-controls button{flex:1;padding:8px 5px;font-size:12px}.rawaa-brand .rawaa-employee-period{grid-template-columns:1fr}.rawaa-brand .rawaa-employee-period>label,.rawaa-brand .rawaa-employee-period>.rawaa-month-controls{grid-row:auto}}
 }
 @media print{.rawaa-month-controls,.rawaa-employee-period{display:none!important}}
+
+@media screen {
+ .rawaa-brand .rawaa-month-history{margin:24px 0;padding:20px;border:1px solid #d8e1d1;border-radius:18px;background:#fffefb}
+ .rawaa-brand .rawaa-month-history>summary{cursor:pointer;min-height:44px;align-content:center;font-size:18px;font-weight:700;color:#174a3c}
+ .rawaa-brand .rawaa-month-history>label{max-width:220px;margin:16px 0}
+ .rawaa-brand .rawaa-history-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+ .rawaa-brand .rawaa-history-card{display:flex;flex-direction:column;gap:10px;padding:18px;border:1px solid #d8e1d1;border-radius:14px;background:#f5f7ef;color:#315d43;text-decoration:none}
+ .rawaa-brand .rawaa-history-card:hover{background:#eaf0e2;border-color:#78916b}
+ .rawaa-brand .rawaa-history-card:focus-visible,.rawaa-brand .rawaa-month-history>summary:focus-visible{outline:3px solid #b99c62;outline-offset:3px}
+ .rawaa-brand .rawaa-history-card small{color:#52694e}.rawaa-brand .rawaa-history-open{font-size:13px;font-weight:700;margin-top:6px}
+}
+@media print{.rawaa-month-history{display:none!important}}

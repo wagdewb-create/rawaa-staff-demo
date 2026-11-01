@@ -63,6 +63,26 @@ async function boot(browser,base,viewport,empty=false,hash=''){
   assert.ok(widths.document<=widths.screen+2,'no global sideways scrolling on iPhone: '+JSON.stringify(widths));
   // Month selection changes only the view; historical months never create payroll writes.
   const monthlyBefore=await m.evaluate(()=>localStorage.getItem('mock_nav_row'));
+  await m.evaluate(()=>{
+   window.__originalHistoryReaders=[window.RAWAA_ATTENDANCE_BRIDGE.getCalculated,window.RAWAA_FINANCE_TEST.getTransactions];
+   window.RAWAA_ATTENDANCE_BRIDGE.getCalculated=()=>[{date:'2024-12-31',duration:9},{date:'2024-12-15',duration:8},{date:'2025-01-01',duration:4}];
+   window.RAWAA_FINANCE_TEST.getTransactions=()=>[{date:'2023-06-02'}];
+   window.RAWAA_EASY_UI_TEST.refreshOverview();
+  });
+  await m.locator('#rawaa-month-history summary').click();
+  assert.equal(await m.locator('#rawaa-history-year').inputValue(),'2025');
+  await m.locator('#rawaa-history-year').selectOption('2024');
+  assert.equal(await m.locator('[data-history-month="2024-12"]').count(),1);
+  assert.match(await m.locator('[data-history-month="2024-12"]').textContent(),/١٧/,'monthly hours include all shifts');
+  await m.locator('#rawaa-history-year').selectOption('2023');
+  assert.equal(await m.locator('[data-history-month="2023-06"]').count(),1,'financial-only months remain accessible');
+  await m.locator('[data-history-month="2023-06"]').click();
+  assert.equal(await m.locator('#fin-month').inputValue(),'2023-06');
+  assert.equal(await m.locator('#fin-filter').inputValue(),'all');
+  assert.equal(await m.locator('#monthly-ledger').isVisible(),true);
+  assert.equal(await m.evaluate(()=>localStorage.getItem('mock_nav_row')),monthlyBefore,'history browsing never writes payroll');
+  await m.evaluate(()=>{[window.RAWAA_ATTENDANCE_BRIDGE.getCalculated,window.RAWAA_FINANCE_TEST.getTransactions]=window.__originalHistoryReaders;});
+  await m.locator('#rawaa-mobile-tabs a[href="#dashboard"]').click();
   await m.locator('#rawaa-home-month').fill('2025-01');
   await m.locator('#rawaa-home-month').dispatchEvent('change');
   assert.equal(await m.locator('#rawaa-home-month-stats .rawaa-easy-metric').count(),4);
