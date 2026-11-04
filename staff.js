@@ -10,8 +10,13 @@ const normalizedName=value=>String(value??'').trim().replace(/\s+/g,' ');
 const nameKey=value=>normalizedName(value).normalize('NFKC').toLowerCase();
 const $=id=>document.getElementById(id);
 const hasDate=d=>!d||(/^\d{4}-\d\d-\d\d$/.test(d)&&!Number.isNaN(Date.parse(d+'T00:00:00Z'))&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d);
-const inferredFactor=p=>/(وجدي|wagdi|wajdi)/i.test(String(p?.name||''))?1.5:1;
-const currentFactor=p=>(p?.overtimeFactor===1||p?.overtimeFactor===1.5)?p.overtimeFactor:inferredFactor(p);
+// Strict restaurant policy: only head chef Wagdi has ×1.5. Existing ×1.5 flags
+// stored on other employees must NOT override the current policy.
+const isHeadChef=p=>Boolean(p&&(p.headChef===true
+  || /(?:^|\s)(?:وجدي|wagdi|wajdi)(?:\s|$)/i.test(String(p.name||''))
+  || /الشيف\s*الرئيسي/.test(String(p.role||''))));
+const inferredFactor=p=>isHeadChef(p)?1.5:1;
+const currentFactor=p=>inferredFactor(p);
 // The employee policy is the source of truth for payroll calculations, for every date.
 // Old rows keep their timestamps, hourly prices and original stored factor for audit.
 // A saved 1.5 flag on an old shift must not override a regular employee's ×1 policy.
@@ -19,7 +24,7 @@ const overtimeFactorFor=r=>{
  const person=staff.find(p=>p.id===r.employeeId);
  return person?currentFactor(person):([1,1.5].includes(r.overtimeFactor)?r.overtimeFactor:1);
 };
-const clean=p=>({id:String(p.id),name:p.name.trim(),role:p.role.trim(),rate:Number(p.rate),overtimeFactor:currentFactor(p),phone:p.phone.trim(),startDate:p.startDate||'',note:p.note.trim(),status:p.status,avatar:p.avatar||'☾',basic:Number(p.basic)||0,overtime:Number(p.overtime)||0,withdrawal:Number(p.withdrawal)||0,paid:Number(p.paid)||0});
+const clean=p=>({id:String(p.id),name:p.name.trim(),role:p.role.trim(),rate:Number(p.rate),headChef:isHeadChef(p),overtimeFactor:currentFactor(p),phone:p.phone.trim(),startDate:p.startDate||'',note:p.note.trim(),status:p.status,avatar:p.avatar||'☾',basic:Number(p.basic)||0,overtime:Number(p.overtime)||0,withdrawal:Number(p.withdrawal)||0,paid:Number(p.paid)||0});
 function validateRoster(list){
 if(!Array.isArray(list)||list.length<1||list.length>MAX)return 'يجب أن تحتوي القائمة على موظف واحد على الأقل، بحد أقصى 100 موظف';
 const ids=new Set();for(const p of list){
@@ -29,6 +34,7 @@ if(typeof p.name!=='string'||!p.name.trim()||p.name.length>65)return 'اسم ا�
 if(typeof p.role!=='string'||p.role.length>65)return 'القسم أو الوظيفة غير صالحة';
 if(typeof p.rate!=='number'||!Number.isFinite(p.rate)||p.rate<=0||p.rate>10000)return 'أجر الساعة يجب أن يكون أكبر من صفر';
 if(p.overtimeFactor!==undefined&&![1,1.5].includes(p.overtimeFactor))return 'معامل الإضافي يجب أن يكون 1 أو 1.5';
+ if(p.headChef!==undefined&&typeof p.headChef!=='boolean')return 'تصنيف الشيف الرئيسي غير صالح';
  if(typeof p.phone!=='string'||p.phone.length>35)return 'رقم التواصل طويل';
 if(typeof p.startDate!=='string'||!hasDate(p.startDate))return 'تاريخ المباشرة غير صالح';
 if(typeof p.note!=='string'||p.note.length>200)return 'الملاحظات طويلة جدًا';
@@ -58,7 +64,7 @@ function notice(text,isError=false){const x=$('staff-feedback');if(x){x.classNam
 function formClear(){editId=null;$('staff-form').reset();$('staff-status').value='active';$('staff-overtime-factor').value='1';$('staff-avatar').value='☾';$('staff-form-title').textContent=window.RAWAA_CLOUD_WORKSPACE?'إضافة موظف':'إضافة موظف تجريبي';$('staff-save').textContent='إضافة الموظف';$('staff-cancel').hidden=true;}
 function formFill(id){
 const p=staff.find(p=>p.id===id);if(!p)return;editId=id;
-for(const [k,c] of [['name','name'],['role','role'],['rate','rate'],['overtime-factor','overtimeFactor'],['phone','phone'],['startDate','startDate'],['note','note'],['status','status'],['avatar','avatar']])$('staff-'+k).value=p[c]??(c==='overtimeFactor'?inferredFactor(p):'');
+for(const [k,c] of [['name','name'],['role','role'],['rate','rate'],['overtime-factor','overtimeFactor'],['phone','phone'],['startDate','startDate'],['note','note'],['status','status'],['avatar','avatar']])$('staff-'+k).value=c==='overtimeFactor'?currentFactor(p):p[c]??'';
 $('staff-form-title').textContent='تعديل بيانات الموظف';$('staff-save').textContent='حفظ التعديلات';$('staff-cancel').hidden=false;notice('تعديل الموظف: '+p.name);
 $('staff-form').scrollIntoView({behavior:'smooth',block:'center'});
 }
@@ -150,7 +156,7 @@ card.append(avatar,details,rename,edit,archive,remove);c.append(card);
 function replaceRoster(rows,{silent=false}={}){const err=validateRoster(rows);if(err)throw Error(err);staff.splice(0,staff.length,...rows.map(clean));save();if(!silent)stateChange();}
 $('staff-form').addEventListener('submit',e=>{
 e.preventDefault();const previous=staff.find(p=>p.id===editId);
-const raw={id:editId||('demo-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)),name:$('staff-name').value,role:$('staff-role').value,rate:Number($('staff-rate').value),overtimeFactor:Number($('staff-overtime-factor').value),phone:$('staff-phone').value,startDate:$('staff-startDate').value,note:$('staff-note').value,status:$('staff-status').value,avatar:$('staff-avatar').value,basic:previous?.basic||0,overtime:previous?.overtime||0,withdrawal:previous?.withdrawal||0,paid:previous?.paid||0};
+const raw={id:editId||('demo-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)),name:$('staff-name').value,role:$('staff-role').value,rate:Number($('staff-rate').value),headChef:previous?.headChef===true,overtimeFactor:Number($('staff-overtime-factor').value),phone:$('staff-phone').value,startDate:$('staff-startDate').value,note:$('staff-note').value,status:$('staff-status').value,avatar:$('staff-avatar').value,basic:previous?.basic||0,overtime:previous?.overtime||0,withdrawal:previous?.withdrawal||0,paid:previous?.paid||0};
 if($('staff-rate').value.trim()===''){notice('سعر الساعة مطلوب',true);return}
 const p=clean(raw);const proposed=editId?staff.map(x=>x.id===editId?p:x):[...staff,p],err=validateRoster(proposed);
 if(err){notice(err,true);return}if(staff.some(x=>x.id!==editId&&nameKey(x.name)===nameKey(p.name))){notice('اسم الموظف موجود مسبقًا',true);return}
@@ -159,9 +165,13 @@ if(editId){const at=staff.findIndex(x=>x.id===editId);staff.splice(at,1,p)}else 
 const wasEditing=Boolean(editId);if(!save()){staff.splice(0,staff.length,...before);notice('تعذر حفظ البيانات على هذا الجهاز؛ لم نعتمد التعديل.',true);return;}
 formClear();stateChange();notice(wasEditing?'تم تعديل بيانات الموظف وحفظها على هذا الجهاز.':'تمت إضافة الموظف وحفظه على هذا الجهاز.')});
 $('staff-cancel').onclick=formClear;
-$('staff-name').addEventListener('input',()=>{
- if(!editId&&/(وجدي|wagdi|wajdi)/i.test($('staff-name').value))$('staff-overtime-factor').value='1.5';
-});
+function syncChefRate(){
+ const previous=staff.find(p=>p.id===editId);
+ const proposed={name:$('staff-name').value,role:$('staff-role').value,headChef:previous?.headChef===true};
+ $('staff-overtime-factor').value=String(currentFactor(proposed));
+}
+$('staff-name').addEventListener('input',syncChefRate);
+$('staff-role').addEventListener('input',syncChefRate);
 $('staff-manage-cards').addEventListener('click',e=>{
 const b=e.target.closest('button');if(!b)return;
 if(b.dataset.renameStaff){showQuickRename(b.dataset.renameStaff,b.closest('.staff-manage-card'));return}

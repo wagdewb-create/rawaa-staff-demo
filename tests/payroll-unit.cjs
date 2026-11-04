@@ -17,6 +17,13 @@ const regularExtra=context.enrich([row('new','2026-11-04','08:00','18:00',false,
  assert.equal(historicalExtra.extraFactor,1);assert.equal(historicalExtra.wage,200);
  context.window.RAWAA_STAFF.getOvertimeFactor=()=>1.5;const chefExtra=context.enrich([row('chef','2026-11-04','08:00','18:00',false,20)])[0];assert.equal(chefExtra.extraFactor,1.5);assert.equal(chefExtra.wage,220);
 context.window.RAWAA_STAFF.getOvertimeFactor=r=>r.employeeId==='chef-wagdi'?1.5:1;
+// Reproduce the live iPhone shift: Nov 4, 17:00–02:00, ₪10/h, 9 hours total.
+const adelShift={...row('adel','2026-11-04','17:00','02:00',true,10),employeeId:'adel-service',overtimeFactor:1.5};
+const wagdiShift={...row('wagdi','2026-11-04','17:00','02:00',true,10),employeeId:'chef-wagdi'};
+const actual=context.enrich([adelShift,wagdiShift]);
+assert.equal(actual.find(x=>x.employeeId==='adel-service').duration,9);
+assert.equal(actual.find(x=>x.employeeId==='adel-service').wage,90);
+assert.equal(actual.find(x=>x.employeeId==='chef-wagdi').wage,95);
 el('payslip-month').value='';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(el('payslip-document').hidden,true);assert.equal(el('payslip-print').disabled,true);
 el('payslip-month').value='2026-11';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,0);assert.equal(el('payslip-document').hidden,false);
 el('payslip-month').value='2026-10';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,412);
