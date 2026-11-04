@@ -16,6 +16,7 @@ const regularExtra=context.enrich([row('new','2026-11-04','08:00','18:00',false,
  const historicalExtra=context.enrich([row('historical','2026-10-20','08:00','18:00',false,20)])[0];
  assert.equal(historicalExtra.extraFactor,1);assert.equal(historicalExtra.wage,200);
  context.window.RAWAA_STAFF.getOvertimeFactor=()=>1.5;const chefExtra=context.enrich([row('chef','2026-11-04','08:00','18:00',false,20)])[0];assert.equal(chefExtra.extraFactor,1.5);assert.equal(chefExtra.wage,220);
+context.window.RAWAA_STAFF.getOvertimeFactor=r=>r.employeeId==='chef-wagdi'?1.5:1;
 el('payslip-month').value='';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(el('payslip-document').hidden,true);assert.equal(el('payslip-print').disabled,true);
 el('payslip-month').value='2026-11';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,0);assert.equal(el('payslip-document').hidden,false);
 el('payslip-month').value='2026-10';context.window.RAWAA_PAYSLIP_TEST.render();assert.equal(context.window.RAWAA_PAYSLIP_TEST.data().sums.gross,412);
