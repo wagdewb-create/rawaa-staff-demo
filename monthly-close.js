@@ -12,7 +12,7 @@ const monthOK=m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m);
 const copy=x=>JSON.parse(JSON.stringify(x));
 const money=x=>Math.round((Number(x)+Number.EPSILON)*100)/100;
 const orderRows=arr=>arr.slice().sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
-const maxMonth=()=>new Date().toISOString().slice(0,7); // future approvals are blocked; dates on shifts remain unchanged.
+const maxMonth=()=>typeof window.RAWAA_RESTAURANT_TODAY==='function'?window.RAWAA_RESTAURANT_TODAY().slice(0,7):new Date().toISOString().slice(0,7); // Palestine-local calendar when available.
 function read(){
  const raw=localStorage.getItem(KEY);
  if(!raw)return {format:1,months:{},events:[]};
@@ -60,6 +60,9 @@ async function current(month){
  const audit=P.audit(month,'all');
  if(audit.invalidMonth)throw Error('شهر غير صالح.');
  const source=activeRows(month);
+ const known=new Set(S.getAll().map(p=>p.id));
+ if(source.attendance.some(r=>!known.has(r.employeeId))||source.ledger.some(t=>!known.has(t.employeeId)))
+  throw Error('يوجد سجل موظف غير معروف في هذا الشهر؛ راجع أصل البيانات قبل الإقفال.');
  const set=new Set([...source.attendance.map(x=>x.employeeId),...source.ledger.map(x=>x.employeeId)]);
  const rows=audit.rows.filter(r=>set.has(r.id)).map(r=>({
   id:r.id,name:r.name,shifts:r.shifts,
@@ -135,6 +138,8 @@ card.innerHTML=
  '<p class="warning">تنبيه: قبل الاعتماد راجع استحقاقات العمل الإضافي القانونية والدفعات المسددة. الإقفال الحسابي لا يعني تسديد الراتب أو التنازل عن الحقوق. حمّل نسخة احتياطية مشفّرة من «إدارة الحساب» واحتفظ بكلمة مرورها.</p>'+
  '<div id="monthly-close-status" role="status" aria-live="polite" class="result"></div>'+
  '<div id="monthly-close-overview" class="stats mini-stats"></div>'+
+ '<h4>مقارنة أجر كل موظف مع آخر كشف معتمد</h4>'+
+ '<div class="overflow"><table><thead><tr><th>الموظف</th><th>الأجر الحالي ₪</th><th>الأجر المعتمد ₪</th><th>الفرق ₪</th></tr></thead><tbody id="monthly-close-people"></tbody></table></div>'+
  '<p class="hint" id="monthly-close-drift"></p>'+
  '<label>ملاحظة الإقفال / رقم المراجعة<input id="monthly-close-note" type="text" maxlength="200" placeholder="مثال: تمت مراجعة كشف الشهر"/></label>'+
  '<div class="actions"><button type="button" id="monthly-close-confirm" class="primary">اعتماد إقفال الشهر</button>'+
@@ -147,7 +152,7 @@ let rendering=0;
 async function render(){
  const token=++rendering,month=monthEl.value;
  const status=$('monthly-close-status'),overview=$('monthly-close-overview'),drift=$('monthly-close-drift');
- overview.replaceChildren();$('monthly-close-events').replaceChildren();
+ overview.replaceChildren();$('monthly-close-people').replaceChildren();$('monthly-close-events').replaceChildren();
  if(!monthOK(month)){status.textContent='اختر شهرًا صالحًا.';$('monthly-close-confirm').disabled=true;$('monthly-close-reopen').hidden=true;return;}
  try{
   const state=await inspect(month);if(token!==rendering)return;
@@ -165,6 +170,17 @@ async function render(){
    const box=document.createElement('div');box.className='stat';
    const small=document.createElement('small'),strong=document.createElement('strong');
    small.textContent=label;strong.textContent=val;box.append(small,strong);overview.append(box);
+  }
+  const savedPeople=new Map((state.latest?.rows||[]).map(p=>[p.id,p]));
+  const currentPeople=new Map(state.live.rows.map(p=>[p.id,p]));
+  for(const id of new Set([...currentPeople.keys(),...savedPeople.keys()])){
+   const now=currentPeople.get(id),before=savedPeople.get(id),tr=document.createElement('tr');
+   const difference=money((now?.gross||0)-(before?.gross||0));
+   for(const v of [now?.name||before?.name||id,now?fmt(now.gross):'—',before?fmt(before.gross):'—',before?fmt(difference):'—']){
+    const td=document.createElement('td');td.textContent=v;tr.append(td);
+   }
+   if(before&&difference!==0)tr.className='flag';
+   $('monthly-close-people').append(tr);
   }
   drift.textContent=state.latest&&state.hasChanges?
    'تنبيه: تغيّرت بيانات أو سياسة الحساب بعد النسخة المرجعية. افحص الفرق واحتفظ بالإقفال القديم؛ افتح الشهر بسبب موثق قبل اعتماد نسخة جديدة.':
@@ -197,7 +213,7 @@ $('monthly-close-confirm').addEventListener('click',async()=>{
   await render();
   $('monthly-close-status').textContent+=' · سجّلنا الإقفال على هذا الجهاز؛ تأكد من ظهور «محفوظ ومتزامن» قبل الإغلاق.';
  }catch(e){$('monthly-close-status').textContent='لم يُحفظ الإقفال: '+String(e.message);}
- finally{await render();}
+ finally{button.disabled=false;}
 });
 $('monthly-close-reopen').addEventListener('click',async()=>{
  const month=monthEl.value;
