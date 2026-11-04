@@ -90,4 +90,18 @@ api.renameEmployees([{id:'chef-wagdi',name:'الشيف بعد تعديل الا�
 assert.equal(api.getById('chef-wagdi').overtimeFactor,1.5);
 assert.equal(api.getOvertimeFactor({employeeId:'chef-wagdi',date:'2026-11-05'}),1.5);
 assert.equal(api.getOvertimeFactor({employeeId:'chef-wagdi',date:'2026-10-01',overtimeFactor:1}),1.5);
+// Exact iPhone screenshot regression: Adel, service, 17:00–02:00 (9h), ₪10/h.
+// A previously saved ×1.5 factor on a non-chef must not affect the total.
+const staleAdel={...api.getAll()[0],id:'adel-service',name:'عادل',role:'سيرفس',rate:10,overtimeFactor:1.5,headChef:false};
+api.replaceRoster([...api.export(),staleAdel]);
+const adel=api.getById('adel-service');
+assert.equal(adel.overtimeFactor,1);
+assert.equal(api.currentFactor(adel),1);
+assert.equal(api.getOvertimeFactor({employeeId:'adel-service',date:'2026-11-04',overtimeFactor:1.5}),1);
+assert.equal(8*adel.rate+adel.rate*api.getOvertimeFactor({employeeId:adel.id,date:'2026-11-04'}),90);
+// Wagdi remains the single head-chef exception for the same shift.
+const chief=api.getById('chef-wagdi');
+assert.equal(8*10+10*api.getOvertimeFactor({employeeId:chief.id,date:'2026-11-04'}),95);
+api.renameEmployees([{id:'chef-wagdi',name:'شيف أعيدت تسميته'}]);
+assert.equal(api.currentFactor(api.getById('chef-wagdi')),1.5);
 console.log('PASS: safe staff rename, archived/new staff, inline and bulk UI, unchanged history IDs, validation, rollback, and reload');
