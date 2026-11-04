@@ -11,7 +11,7 @@ const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
 const monthOK=m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m);
 const copy=x=>JSON.parse(JSON.stringify(x));
 const money=x=>Math.round((Number(x)+Number.EPSILON)*100)/100;
-const orderRows=arr=>arr.slice().sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+const orderRows=arr=>arr.slice().sort((a,b)=>{const x=JSON.stringify(a),y=JSON.stringify(b);return x<y?-1:x>y?1:0;}); // stable across browser locales
 const maxMonth=()=>typeof window.RAWAA_RESTAURANT_TODAY==='function'?window.RAWAA_RESTAURANT_TODAY().slice(0,7):new Date().toISOString().slice(0,7); // Palestine-local calendar when available.
 function read(){
  const raw=localStorage.getItem(KEY);
@@ -144,7 +144,7 @@ card.innerHTML=
  '<label>ملاحظة الإقفال / رقم المراجعة<input id="monthly-close-note" type="text" maxlength="200" placeholder="مثال: تمت مراجعة كشف الشهر"/></label>'+
  '<div class="actions"><button type="button" id="monthly-close-confirm" class="primary">اعتماد إقفال الشهر</button>'+
  '<button type="button" id="monthly-close-reopen" class="outline" hidden>إعادة فتح مع توثيق السبب</button></div>'+
- '<h4>سجل الإجراءات لهذا الشهر</h4><div class="overflow"><table><thead><tr><th>التاريخ</th><th>الإجراء</th><th>الإصدار</th><th>السبب</th></tr></thead><tbody id="monthly-close-events"></tbody></table></div>'+
+ '<h4>سجل الإجراءات لهذا الشهر</h4><div class="overflow"><table><thead><tr><th>التاريخ</th><th>الحساب</th><th>الإجراء</th><th>الإصدار</th><th>السبب</th></tr></thead><tbody id="monthly-close-events"></tbody></table></div>'+
  '<p class="hint">يُحفظ القرار ضمن مساحة العمل السحابية الحالية؛ انتظر رسالة «محفوظ ومتزامن» قبل إغلاق الصفحة. النسخ المحفوظة هنا للمراجعة الإدارية وليست سجل تدقيق غير قابل للتعديل على مستوى الخادم.</p>';
 section.append(card);
 const $=id=>document.getElementById(id);
@@ -187,11 +187,11 @@ async function render(){
    state.latest?'لا يوجد تغير في بصمة بيانات الشهر مقارنةً بآخر إقفال.':'لا يوجد إقفال سابق للمقارنة.';
   if(state.live.audit.issues)drift.textContent+=' توجد اختلافات حسابية يجب تصحيحها قبل أي إقفال.';
   if(!state.events.length){
-   const td=document.createElement('td'),tr=document.createElement('tr');td.colSpan=4;td.textContent='لا توجد إجراءات إقفال مسجلة.';tr.append(td);$('monthly-close-events').append(tr);
+   const td=document.createElement('td'),tr=document.createElement('tr');td.colSpan=5;td.textContent='لا توجد إجراءات إقفال مسجلة.';tr.append(td);$('monthly-close-events').append(tr);
   }
   for(const e of state.events.slice().reverse()){
    const tr=document.createElement('tr');
-   for(const value of [e.at,e.type==='close'?'إقفال':'إعادة فتح',e.version,e.reason]){
+   for(const value of [e.at,e.actor,e.type==='close'?'إقفال':'إعادة فتح',e.version,e.reason]){
     const td=document.createElement('td');td.textContent=String(value);tr.append(td);
    }$('monthly-close-events').append(tr);
   }
@@ -204,6 +204,7 @@ $('monthly-close-confirm').addEventListener('click',async()=>{
   const s=await inspect(month);
   if(s.live.audit.issues)throw Error('فحص الحساب يُظهر فروقات. أصلحها قبل الإقفال.');
   const message='تأكيد حفظ كشف '+month+' كنسخة مرجعية رقم '+(s.versions+1)+'؟\n'+
+   (month===maxMonth()?'تنبيه: هذا الشهر لم ينته بعد وقد تتغير السجلات لاحقًا.\n':'')+
    'الأجور '+fmt(s.live.summary.gross)+' ₪ · السحوبات '+fmt(s.live.summary.withdrawals)+' ₪ · الدفعات '+fmt(s.live.summary.paid)+' ₪.\n'+
    (s.live.audit.reviews?'توجد '+s.live.audit.reviews+' ملاحظات مراجعة بشرية قبل الصرف.\n':'')+
    'لن يُعدّل الإقفال سجلات الحضور، ولا يعني دفع الرواتب أو التحقق من قانونية الأجور. هل تمت المراجعة؟';
