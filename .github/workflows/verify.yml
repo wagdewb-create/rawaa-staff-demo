@@ -17,6 +17,7 @@ jobs:
       - name: Check JS syntax
         run: |
           node --check staff.js
+          node --check payroll-audit.js
           node --check work-vault.js
           node --check cloud-sync.js
           node --check daily-batch.js
@@ -26,6 +27,7 @@ jobs:
       - name: Verify payroll and staff
         run: |
           node tests/payroll-unit.cjs
+          node tests/payroll-audit.cjs
           node tests/bulk-staff.cjs
           node tests/staff-rename.cjs
       - name: Verify encrypted one-device work mode
