@@ -84,9 +84,10 @@ const chef={...api.getAll()[1],id:'chef-wagdi',name:'وجدي',role:'الشيف 
 api.replaceRoster([...api.export(),chef]);assert.equal(api.getById('chef-wagdi').overtimeFactor,1.5);
 assert.equal(api.getOvertimeFactor({employeeId:'chef-wagdi',date:'2026-11-04'}),1.5);
 assert.equal(api.getOvertimeFactor({employeeId:oldId,date:'2026-11-04'}),1);
-assert.equal(api.getOvertimeFactor({employeeId:oldId,date:'2026-11-03'}),1.5);
-assert.equal(api.getOvertimeFactor({employeeId:oldId,date:'2026-11-04',overtimeFactor:1.5}),1.5);
+assert.equal(api.getOvertimeFactor({employeeId:oldId,date:'2026-11-03'}),1);
+assert.equal(api.getOvertimeFactor({employeeId:oldId,date:'2026-11-04',overtimeFactor:1.5}),1);
 api.renameEmployees([{id:'chef-wagdi',name:'الشيف بعد تعديل الاسم'}]);
 assert.equal(api.getById('chef-wagdi').overtimeFactor,1.5);
 assert.equal(api.getOvertimeFactor({employeeId:'chef-wagdi',date:'2026-11-05'}),1.5);
+assert.equal(api.getOvertimeFactor({employeeId:'chef-wagdi',date:'2026-10-01',overtimeFactor:1}),1.5);
 console.log('PASS: safe staff rename, archived/new staff, inline and bulk UI, unchanged history IDs, validation, rollback, and reload');

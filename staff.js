@@ -12,9 +12,13 @@ const $=id=>document.getElementById(id);
 const hasDate=d=>!d||(/^\d{4}-\d\d-\d\d$/.test(d)&&!Number.isNaN(Date.parse(d+'T00:00:00Z'))&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d);
 const inferredFactor=p=>/(وجدي|wagdi|wajdi)/i.test(String(p?.name||''))?1.5:1;
 const currentFactor=p=>(p?.overtimeFactor===1||p?.overtimeFactor===1.5)?p.overtimeFactor:inferredFactor(p);
-// Rates saved on a shift override later personnel edits. Earlier shifts keep their original 1.5 rate.
-const overtimeFactorFor=r=>r.date<'2026-11-04'?1.5:
-  ([1,1.5].includes(r.overtimeFactor)?r.overtimeFactor:currentFactor(staff.find(p=>p.id===r.employeeId)));
+// The employee policy is the source of truth for payroll calculations, for every date.
+// Old rows keep their timestamps, hourly prices and original stored factor for audit.
+// A saved 1.5 flag on an old shift must not override a regular employee's ×1 policy.
+const overtimeFactorFor=r=>{
+ const person=staff.find(p=>p.id===r.employeeId);
+ return person?currentFactor(person):([1,1.5].includes(r.overtimeFactor)?r.overtimeFactor:1);
+};
 const clean=p=>({id:String(p.id),name:p.name.trim(),role:p.role.trim(),rate:Number(p.rate),overtimeFactor:currentFactor(p),phone:p.phone.trim(),startDate:p.startDate||'',note:p.note.trim(),status:p.status,avatar:p.avatar||'☾',basic:Number(p.basic)||0,overtime:Number(p.overtime)||0,withdrawal:Number(p.withdrawal)||0,paid:Number(p.paid)||0});
 function validateRoster(list){
 if(!Array.isArray(list)||list.length<1||list.length>MAX)return 'يجب أن تحتوي القائمة على موظف واحد على الأقل، بحد أقصى 100 موظف';
