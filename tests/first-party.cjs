@@ -46,6 +46,18 @@ const {makeHandler,cleanCookie}=require('../server');
    const brand=await fetch(base+'/brand.css?v=222');
    assert.equal(brand.status,200,'visual identity asset is served by the secure gateway');
    assert.match(await brand.text(),/rawaa-auth-story/);
+   // The authenticated cloud loader must find every deferred script on the secure host.
+   // Missing files otherwise reject loadExistingScripts() and block the payroll UI.
+   for(const name of ['payroll-audit.js','monthly-close.js']){
+     const asset=await fetch(base+'/'+name+'?v=231');
+     assert.equal(asset.status,200,name+' must be served by the secure gateway');
+     assert.match(asset.headers.get('content-type')||'',/javascript/,name+' must have JavaScript MIME type');
+     assert.ok((await asset.text()).length>100,'asset must contain its actual source');
+     const head=await fetch(base+'/'+name,{method:'HEAD'});
+     assert.equal(head.status,200,'HEAD must be supported for '+name);
+   }
+   const denied=await fetch(base+'/private.env');
+   assert.equal(denied.status,404,'unknown files must remain blocked by the allowlist');
    const signup=await fetch(base+'/auth/sign-up/email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Bad',email:'unexpected@example.com',password:'password'})});
    assert.equal(signup.status,403,'new signup blocked at first-party gateway, even with a valid request');
    assert.equal(requests.length,2,'blocked signup never reaches Neon');
