@@ -5,12 +5,12 @@ const CACHE='rawaa-shell-v232';
 const ROOT=new URL('./',self.registration.scope);
 const CLOUD=new URL('cloud.html',ROOT);
 const SHELL=[
-  'index.html','cloud.html','work.html','manifest.webmanifest','icon.svg',
-  'staff.css?v=115','easy-ui.css?v=215','brand.css?v=226',
-  'staff.js?v=229','daily-batch.js','weekly-report.js',
-  'shift-planner.js?v=217','daily-operations.js?v=222',
-  'payroll-audit.js?v=230','monthly-close.js?v=231','easy-ui.js?v=226',
-  'work-vault.js?v=116','cloud-sync.js?v=223'
+  './index.html','./cloud.html','./work.html','./manifest.webmanifest','./icon.svg',
+  './staff.css?v=115','./easy-ui.css?v=215','./brand.css?v=226',
+  './staff.js?v=229','./daily-batch.js','./weekly-report.js',
+  './shift-planner.js?v=217','./daily-operations.js?v=222',
+  './payroll-audit.js?v=230','./monthly-close.js?v=231','./easy-ui.js?v=226',
+  './work-vault.js?v=116','./cloud-sync.js?v=223'
 ];
 const STATIC_PATHS=new Set(SHELL.map(s=>new URL(s,ROOT).pathname));
 const isPublicResponse=response=>response.ok&&!response.redirected&&response.type!=='opaque';
