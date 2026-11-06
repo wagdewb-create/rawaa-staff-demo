@@ -7,6 +7,7 @@
 const http=require('node:http');
 const fs=require('node:fs');
 const path=require('node:path');
+const zlib=require('node:zlib');
 const {URL}=require('node:url');
 const root=__dirname;
 const AUTH=process.env.NEON_AUTH_BASE_URL||'';
@@ -139,10 +140,19 @@ function makeHandler(options={}){
       res.statusCode=200;
       res.setHeader('Content-Type',mime[path.extname(file)]||'application/octet-stream');
       if(file==='cloud.html'){
-        // Static Render version remains untouched; only secure Node service
-        // activates first-party URLs for the existing Neon JS client.
+        // Keep same-origin authentication; never serve credentials or user data from a static cache.
         content=Buffer.from(content.toString().replace('<head>','<head><script>window.RAWAA_FIRST_PARTY_AUTH=true;</script>'));
       }
+      // Only public app files are cached. /auth, /data, and /health retain no-store.
+      res.setHeader('Cache-Control',file.endsWith('.html')||file==='service-worker.js'
+        ?'no-cache, must-revalidate'
+        :'public, max-age=300, stale-while-revalidate=600');
+      res.setHeader('Vary','Accept-Encoding');
+      if(content.length>=1024&&/\\bgzip\\b/i.test(String(req.headers['accept-encoding']||''))){
+        content=zlib.gzipSync(content,{level:4});
+        res.setHeader('Content-Encoding','gzip');
+      }
+      res.setHeader('Content-Length',String(content.length));
       res.end(req.method==='HEAD'?undefined:content);
     });
   };
