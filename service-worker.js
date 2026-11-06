@@ -41,7 +41,7 @@ self.addEventListener('fetch',event=>{
   const url=new URL(request.url);
   if(url.origin!==self.location.origin)return;
   // Do not intercept, cache, or serve stale authentication or payroll API results.
-  if(/^\\/(auth|data)(\\/|$)/.test(url.pathname))return;
+  if(/^\/(auth|data)(\/|$)/.test(url.pathname))return;
 
   if(request.mode==='navigate'&&(url.pathname===ROOT.pathname||url.pathname===CLOUD.pathname)){
     event.respondWith((async()=>{
