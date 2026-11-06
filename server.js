@@ -148,7 +148,7 @@ function makeHandler(options={}){
         ?'no-cache, must-revalidate'
         :'public, max-age=300, stale-while-revalidate=600');
       res.setHeader('Vary','Accept-Encoding');
-      if(content.length>=1024&&/\\bgzip\\b/i.test(String(req.headers['accept-encoding']||''))){
+      if(content.length>=1024&&/\bgzip\b/i.test(String(req.headers['accept-encoding']||''))){
         content=zlib.gzipSync(content,{level:4});
         res.setHeader('Content-Encoding','gzip');
       }
