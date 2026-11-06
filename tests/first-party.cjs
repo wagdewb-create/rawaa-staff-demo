@@ -45,7 +45,13 @@ const {makeHandler,cleanCookie}=require('../server');
    assert.equal(requests[1].cookie,cookies.split(';')[0]);
    const brand=await fetch(base+'/brand.css?v=222');
    assert.equal(brand.status,200,'visual identity asset is served by the secure gateway');
+   assert.match(brand.headers.get('cache-control')||'',/public.*max-age=300/,'only public assets should be browser-cacheable');
    assert.match(await brand.text(),/rawaa-auth-story/);
+   assert.equal(session.headers.get('cache-control'),'no-store','user sessions must never enter a browser cache');
+   const compressed=await fetch(base+'/cloud.html',{headers:{'Accept-Encoding':'gzip'}});
+   assert.equal(compressed.status,200);
+   assert.equal(compressed.headers.get('content-encoding'),'gzip','app HTML should use gzip on slow mobile networks');
+   assert.match(await compressed.text(),/RAWAA_FIRST_PARTY_AUTH=true/,'gzip response still enables safe first-party login');
    // The authenticated cloud loader must find every deferred script on the secure host.
    // Missing files otherwise reject loadExistingScripts() and block the payroll UI.
    for(const name of ['payroll-audit.js','monthly-close.js']){
