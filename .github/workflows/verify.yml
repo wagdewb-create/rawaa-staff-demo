@@ -16,6 +16,8 @@ jobs:
           node-version: '22'
       - name: Check JS syntax
         run: |
+          node --check server.js
+          node --check service-worker.js
           node --check staff.js
           node --check payroll-audit.js
           node --check monthly-close.js
