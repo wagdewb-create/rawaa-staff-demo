@@ -21,6 +21,8 @@ jobs:
           node --check staff.js
           node --check payroll-audit.js
           node --check monthly-close.js
+          node --check weekly-payroll-core.js
+          node --check weekly-payroll-close.js
           node --check work-vault.js
           node --check cloud-sync.js
           node --check daily-batch.js
@@ -32,6 +34,7 @@ jobs:
           node tests/payroll-unit.cjs
           node tests/payroll-audit.cjs
           node tests/monthly-close.cjs
+          node tests/weekly-payroll-close.cjs
           node tests/bulk-staff.cjs
           node tests/staff-rename.cjs
       - name: Verify encrypted one-device work mode
